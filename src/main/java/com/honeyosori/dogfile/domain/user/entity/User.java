@@ -40,17 +40,17 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OwnBadge> ownBadgeList;
 
-    @OneToMany(mappedBy = "blockIdentity.blocker", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Block> blockerList;
+    @OneToMany(targetEntity = Block.class, mappedBy = "blockIdentity.blocker", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<User> blockerList;
 
-    @OneToMany(mappedBy = "blockIdentity.blockee", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Block> blockeeList;
+    @OneToMany(targetEntity = Block.class, mappedBy = "blockIdentity.blockee", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<User> blockeeList;
 
-    @OneToMany(mappedBy = "followIdentity.follower", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Follow> followerList;
+    @OneToMany(targetEntity = Follow.class, mappedBy = "followIdentity.follower", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<User> followerList;
 
-    @OneToMany(mappedBy = "followIdentity.followee", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Follow> followeeList;
+    @OneToMany(targetEntity = Follow.class, mappedBy = "followIdentity.followee", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<User> followeeList;
 
     public User(String username, String password, Role role) {
         this.username = username;

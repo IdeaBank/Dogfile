@@ -7,4 +7,5 @@ spring:
     password: "${DB_PASSWORD}"
   jpa:
     show-sql: true
-    ddl-auto: validate
+    hibernate:
+      ddl-auto: validate

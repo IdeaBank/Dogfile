@@ -1,6 +1,7 @@
 package com.honeyosori.dogfile.domain.user.identity;
 
 import com.honeyosori.dogfile.domain.user.entity.User;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
@@ -13,9 +14,9 @@ import java.io.Serializable;
 @AllArgsConstructor
 @Embeddable
 public class FollowIdentity implements Serializable {
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private User follower;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private User followee;
 }
