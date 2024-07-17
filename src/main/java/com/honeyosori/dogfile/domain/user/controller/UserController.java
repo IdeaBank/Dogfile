@@ -1,0 +1,41 @@
+package com.honeyosori.dogfile.domain.user.controller;
+
+import com.honeyosori.dogfile.domain.user.dto.CreateUserDto;
+import com.honeyosori.dogfile.domain.user.dto.UpdateUserDto;
+import com.honeyosori.dogfile.domain.user.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/v1/user")
+public class UserController {
+    private UserService userService;
+
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
+    @PostMapping
+    public ResponseEntity<?> createUser(@RequestBody CreateUserDto createUserDto) {
+        this.userService.register(createUserDto);
+
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @PatchMapping
+    public ResponseEntity<?> updateUser(@RequestParam Long userId, @RequestBody UpdateUserDto updateUserDto) throws ClassNotFoundException{
+        this.userService.updateUser(userId, updateUserDto);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @DeleteMapping
+    public ResponseEntity<?> deleteUser(@RequestParam Long userId) throws ClassNotFoundException {
+        this.userService.deleteUser(userId);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+}

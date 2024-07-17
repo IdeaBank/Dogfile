@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: dogfile
+  datasource:
+    url: "${DB_URL}"
+    username: "${DB_USERNAME}"
+    password: "${DB_PASSWORD}"
+  jpa:
+    show-sql: true
+    ddl-auto: validate
