@@ -13,8 +13,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Getter
-@Setter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {
@@ -23,11 +21,14 @@ public class User {
     private Long id;
 
     @Column
-    private String username;
+    private String name;
 
+    @Getter
+    @Setter
     @Column
     private String password;
 
+    @Setter
     @Column
     private Role role;
 
@@ -52,8 +53,8 @@ public class User {
     @OneToMany(targetEntity = Follow.class, mappedBy = "followIdentity.followee", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<User> followeeList;
 
-    public User(String username, String password, Role role) {
-        this.username = username;
+    public User(String name, String password, Role role) {
+        this.name = name;
         this.password = password;
         this.role = role;
     }

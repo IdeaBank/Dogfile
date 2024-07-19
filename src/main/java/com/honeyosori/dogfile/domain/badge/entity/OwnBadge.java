@@ -2,11 +2,7 @@ package com.honeyosori.dogfile.domain.badge.entity;
 
 import com.honeyosori.dogfile.domain.user.entity.User;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
 
-@Getter
-@Setter
 @Entity
 public class OwnBadge {
     @Id

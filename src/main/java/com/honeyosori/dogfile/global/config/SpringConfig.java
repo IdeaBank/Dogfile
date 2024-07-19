@@ -27,11 +27,11 @@ public class SpringConfig {
 
     @Bean
     public UserService userService() {
-        return new UserService(userRepository, badgeRepository);
+        return new UserService(userRepository, badgeRepository, ownBadgeRepository);
     }
 
     @Bean
     public DogService dogService() {
-        return new DogService(dogRepository, breedRepository);
+        return new DogService(userRepository, dogRepository, breedRepository);
     }
 }

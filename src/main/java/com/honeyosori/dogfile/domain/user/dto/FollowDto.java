@@ -1,4 +1,7 @@
 package com.honeyosori.dogfile.domain.user.dto;
 
-public record FollowDto(Long followerId, Long followeeId) {
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+public record FollowDto(@JsonInclude Long followerId,
+                        @JsonInclude Long followeeId) {
 }

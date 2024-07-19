@@ -1,12 +1,11 @@
 package com.honeyosori.dogfile.domain.dog.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-@Getter
-@Setter
 @Entity
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Breed {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -14,4 +13,9 @@ public class Breed {
 
     @Column
     private String name;
+
+    public Breed(String name) {
+        this.name = name;
+    }
 }
+
