@@ -7,5 +7,10 @@ spring:
     password: "${DB_PASSWORD}"
   jpa:
     show-sql: true
+    open-in-view: false
     hibernate:
       ddl-auto: validate
+
+jwt:
+  secret: "iHixb3jBQEqLIJCQvWgMnQKianUU50A7LcAf1gyQWHA"
+  expiration: 100

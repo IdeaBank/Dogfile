@@ -15,6 +15,7 @@ public enum BaseResponseStatus {
     /**
      * 4XX
      */
+    REJECTED(false, HttpStatus.NOT_ACCEPTABLE.value(), "REJECTED"),
     FORBIDDEN(false, HttpStatus.FORBIDDEN.value(), "Not authenticated"),
     // Access without token
 

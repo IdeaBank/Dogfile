@@ -7,9 +7,17 @@ import com.honeyosori.dogfile.domain.user.entity.*;
 import com.honeyosori.dogfile.domain.user.identity.*;
 import com.honeyosori.dogfile.domain.user.repository.*;
 import com.honeyosori.dogfile.global.response.*;
+import com.honeyosori.dogfile.global.utility.JwtUtility;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.net.http.HttpResponse;
 
 @Service
 public class UserService {
@@ -19,14 +27,16 @@ public class UserService {
     private final BadgeRepository badgeRepository;
     private final OwnBadgeRepository ownBadgeRepository;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    private final JwtUtility jwtUtility;
 
     @Autowired
-    public UserService(UserRepository userRepository, BlockRepository blockRepository, FollowRepository followRepository, BadgeRepository badgeRepository, OwnBadgeRepository ownBadgeRepository) {
+    public UserService(UserRepository userRepository, BlockRepository blockRepository, FollowRepository followRepository, BadgeRepository badgeRepository, OwnBadgeRepository ownBadgeRepository, JwtUtility jwtUtility) {
         this.userRepository = userRepository;
         this.blockRepository = blockRepository;
         this.followRepository = followRepository;
         this.badgeRepository = badgeRepository;
         this.ownBadgeRepository = ownBadgeRepository;
+        this.jwtUtility = jwtUtility;
     }
 
     public BaseResponse<?> register(CreateUserDto createUserDto) {
@@ -74,6 +84,35 @@ public class UserService {
         this.userRepository.save(user);
 
         return new BaseResponse<>(BaseResponseStatus.UPDATED, updateUserDto);
+    }
+
+    public void login(LoginDto loginDto, HttpServletResponse httpServletResponse) {
+        String username = loginDto.username();
+        String password = loginDto.password();
+
+        User user = this.userRepository.findUserByUsername(username).orElse(null);
+
+        if (user == null) {
+            httpServletResponse.setStatus(BaseResponseStatus.USER_NOT_FOUND.getStatus());
+
+            return;
+        }
+
+        if(encoder.matches(password, user.getPassword())) {
+            String accessToken = jwtUtility.generateAccessToken(username);
+
+            httpServletResponse.setStatus(HttpStatus.OK.value());
+            httpServletResponse.addHeader("Authorization", "Bearer " + accessToken);
+            httpServletResponse.addHeader("Access-Control-Expose-Headers", "Authorization");
+
+            //TODO: Refresh token
+            Cookie cookie = new Cookie("refresh_token", accessToken);
+            cookie.setPath("/");
+
+            httpServletResponse.addCookie(cookie);
+        }
+
+        httpServletResponse.setStatus(BaseResponseStatus.WRONG_PASSWORD.getStatus());
     }
 
     public BaseResponse<?> deleteUser() {

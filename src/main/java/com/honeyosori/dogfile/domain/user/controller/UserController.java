@@ -1,15 +1,18 @@
 package com.honeyosori.dogfile.domain.user.controller;
 
-import com.honeyosori.dogfile.domain.user.dto.BlockDto;
-import com.honeyosori.dogfile.domain.user.dto.CreateUserDto;
-import com.honeyosori.dogfile.domain.user.dto.FollowDto;
-import com.honeyosori.dogfile.domain.user.dto.UpdateUserDto;
+import com.honeyosori.dogfile.domain.user.dto.*;
 import com.honeyosori.dogfile.domain.user.service.UserService;
 import com.honeyosori.dogfile.global.response.BaseResponse;
+import com.honeyosori.dogfile.global.response.BaseResponseStatus;
+import com.honeyosori.dogfile.global.response.BindingResultMessage;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/v1/user")
@@ -22,27 +25,32 @@ public class UserController {
     }
 
     @PostMapping
-    public BaseResponse<?> createUser(@RequestBody CreateUserDto createUserDto) {
+    public BaseResponse<?> createUser(@Valid @RequestBody CreateUserDto createUserDto) {
         return this.userService.register(createUserDto);
     }
 
+    @PostMapping("/login")
+    public void login(@Valid @RequestBody LoginDto loginDto, HttpServletResponse response) {
+        this.userService.login(loginDto, response);
+    }
+
     @PatchMapping
-    public BaseResponse<?> updateUser(@RequestParam Long userId, @RequestBody UpdateUserDto updateUserDto) {
+    public BaseResponse<?> updateUser(@Valid @RequestBody UpdateUserDto updateUserDto) {
         return this.userService.updateUser(updateUserDto);
     }
 
     @DeleteMapping
-    public BaseResponse<?> deleteUser(@RequestParam Long userId) {
+    public BaseResponse<?> deleteUser() {
         return this.userService.deleteUser();
     }
 
     @PostMapping("/follow")
-    public BaseResponse<?> followUser(@RequestBody FollowDto followDto) {
+    public BaseResponse<?> followUser(@Valid @RequestBody FollowDto followDto) {
         return this.userService.follow(followDto);
     }
 
     @PostMapping("/block")
-    public BaseResponse<?> blockUser(@RequestBody BlockDto blockDto) {
+    public BaseResponse<?> blockUser(@Valid @RequestBody BlockDto blockDto) {
         return this.userService.block(blockDto);
     }
 }
