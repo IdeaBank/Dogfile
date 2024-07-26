@@ -13,6 +13,8 @@ import com.honeyosori.dogfile.global.response.BaseResponseStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class DogService {
     private final UserRepository userRepository;
@@ -27,10 +29,13 @@ public class DogService {
     }
 
     public BaseResponse<?> registerDog(RegisterDogDto registerDogDto) {
-        User owner = this.userRepository.getUserById(registerDogDto.userId());
+        // TODO: User ID
+        Long userId = 1L;
+        User owner = this.userRepository.getUserById(userId);
+        Breed breed = this.breedRepository.findById(registerDogDto.breedId()).orElse(null);
 
-        if (owner == null) {
-            return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
+        if(breed == null) {
+            return new BaseResponse<>(BaseResponseStatus.BREED_NOT_FOUND, null);
         }
 
         Dog dog = registerDogDto.toDog();
@@ -51,5 +56,11 @@ public class DogService {
         this.breedRepository.save(breed);
 
         return new BaseResponse<>(BaseResponseStatus.CREATED, createBreedDto);
+    }
+
+    public BaseResponse<?> getBreedList() {
+        List<Breed> breedList = this.breedRepository.findAll();
+
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, breedList);
     }
 }

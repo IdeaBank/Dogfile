@@ -1,4 +1,4 @@
 package com.honeyosori.dogfile.domain.user.dto;
 
-public record FollowDto(Long followeeId) {
+public record BlockDto(Long blockeeId) {
 }

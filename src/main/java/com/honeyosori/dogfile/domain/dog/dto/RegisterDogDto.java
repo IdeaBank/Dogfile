@@ -5,9 +5,8 @@ import com.honeyosori.dogfile.domain.dog.entity.Breed;
 import com.honeyosori.dogfile.domain.dog.entity.Dog;
 
 public record RegisterDogDto(@JsonInclude String name,
-                             @JsonInclude Long userId,
-                             @JsonInclude Breed breed) {
+                             @JsonInclude Long breedId) {
     public Dog toDog() {
-        return new Dog(name, breed);
+        return new Dog(name);
     }
 }

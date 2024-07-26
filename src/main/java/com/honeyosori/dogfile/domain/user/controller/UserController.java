@@ -1,6 +1,8 @@
 package com.honeyosori.dogfile.domain.user.controller;
 
+import com.honeyosori.dogfile.domain.user.dto.BlockDto;
 import com.honeyosori.dogfile.domain.user.dto.CreateUserDto;
+import com.honeyosori.dogfile.domain.user.dto.FollowDto;
 import com.honeyosori.dogfile.domain.user.dto.UpdateUserDto;
 import com.honeyosori.dogfile.domain.user.service.UserService;
 import com.honeyosori.dogfile.global.response.BaseResponse;
@@ -25,16 +27,22 @@ public class UserController {
     }
 
     @PatchMapping
-    public ResponseEntity<?> updateUser(@RequestParam Long userId, @RequestBody UpdateUserDto updateUserDto) throws ClassNotFoundException{
-        this.userService.updateUser(userId, updateUserDto);
-
-        return new ResponseEntity<>(HttpStatus.OK);
+    public BaseResponse<?> updateUser(@RequestParam Long userId, @RequestBody UpdateUserDto updateUserDto) {
+        return this.userService.updateUser(updateUserDto);
     }
 
     @DeleteMapping
-    public ResponseEntity<?> deleteUser(@RequestParam Long userId) throws ClassNotFoundException {
-        this.userService.deleteUser(userId);
+    public BaseResponse<?> deleteUser(@RequestParam Long userId) {
+        return this.userService.deleteUser();
+    }
 
-        return new ResponseEntity<>(HttpStatus.OK);
+    @PostMapping("/follow")
+    public BaseResponse<?> followUser(@RequestBody FollowDto followDto) {
+        return this.userService.follow(followDto);
+    }
+
+    @PostMapping("/block")
+    public BaseResponse<?> blockUser(@RequestBody BlockDto blockDto) {
+        return this.userService.block(blockDto);
     }
 }

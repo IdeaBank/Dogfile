@@ -16,7 +16,10 @@ public enum BaseResponseStatus {
      * 4XX
      */
     FORBIDDEN(false, HttpStatus.FORBIDDEN.value(), "Not authenticated"),
+    // Access without token
+
     UNAUTHENTICATED(false, HttpStatus.UNAUTHORIZED.value(), "Unauthorized access"),
+    // Can't access to specific method
 
     EMAIL_EXIST(false, HttpStatus.CONFLICT.value(), "Same email already exists"),
     BADGE_EXIST(false, HttpStatus.CONFLICT.value(), "Badge already exists"),
@@ -25,6 +28,11 @@ public enum BaseResponseStatus {
     WRONG_PASSWORD(false, HttpStatus.UNAUTHORIZED.value(), "Invalid password"),
 
     USER_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "User not found"),
+    BREED_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "Breed not found"),
+    BADGE_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "Badge not found"),
+
+    NOT_FOLLOWING(false, HttpStatus.CONFLICT.value(), "Not following"),
+    NOT_BLOCKING(false, HttpStatus.CONFLICT.value(), "Not blocking"),
 
     ALREADY_OWN_BADGE(false, HttpStatus.CONFLICT.value(), "Badge already owned by user"),
 

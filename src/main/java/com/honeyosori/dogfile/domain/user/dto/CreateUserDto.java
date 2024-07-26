@@ -1,14 +1,22 @@
 package com.honeyosori.dogfile.domain.user.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.honeyosori.dogfile.domain.user.entity.User;
 import com.honeyosori.dogfile.global.constant.Role;
+import com.honeyosori.dogfile.global.constant.UserStatus;
 
-public record CreateUserDto(@JsonInclude String username,
+import java.sql.Date;
+
+public record CreateUserDto(String username,
+                            String name,
                             @JsonIgnore String password,
-                            @JsonIgnore Role role) {
+                            String profileImageUrl,
+                            Date birthday,
+                            String phoneNumber,
+                            String email,
+                            Role role,
+                            UserStatus userStatus) {
     public User toUser() {
-        return new User(username, password, role);
+        return new User(username, name, password, profileImageUrl, birthday, phoneNumber, email, role, userStatus);
     }
 }

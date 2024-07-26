@@ -3,6 +3,7 @@ package com.honeyosori.dogfile.domain.user.entity;
 import com.honeyosori.dogfile.domain.badge.entity.OwnBadge;
 import com.honeyosori.dogfile.domain.dog.entity.Dog;
 import com.honeyosori.dogfile.global.constant.Role;
+import com.honeyosori.dogfile.global.constant.UserStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.sql.Date;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -20,6 +22,11 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Getter
+    @Column
+    private String username;
+
+    @Getter
     @Column
     private String name;
 
@@ -28,34 +35,67 @@ public class User {
     @Column
     private String password;
 
+    @Getter
+    @Setter
+    @Column(name = "profile_image_url")
+    private String profileImageUrl;
+
+    @Getter
+    @Setter
+    @Column
+    private Date birthday;
+
+    @Getter
+    @Setter
+    @Column(name = "phone_number")
+    private String phoneNumber;
+
+    @Getter
+    @Setter
+    @Column
+    private String email;
+
+    @Getter
     @Setter
     @Column
     private Role role;
 
-    @CreationTimestamp
-    private LocalDateTime created_at;
+    @Getter
+    @Setter
+    @Column(name = "user_status")
+    private UserStatus userStatus;
 
-    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    @CreationTimestamp
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "owner")
     private List<Dog> dogs;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user")
     private List<OwnBadge> ownBadgeList;
 
-    @OneToMany(targetEntity = Block.class, mappedBy = "blockIdentity.blocker", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(targetEntity = Block.class, mappedBy = "blockIdentity.blocker")
     private List<User> blockerList;
 
-    @OneToMany(targetEntity = Block.class, mappedBy = "blockIdentity.blockee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(targetEntity = Block.class, mappedBy = "blockIdentity.blockee")
     private List<User> blockeeList;
 
-    @OneToMany(targetEntity = Follow.class, mappedBy = "followIdentity.follower", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(targetEntity = Follow.class, mappedBy = "followIdentity.follower")
     private List<User> followerList;
 
-    @OneToMany(targetEntity = Follow.class, mappedBy = "followIdentity.followee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(targetEntity = Follow.class, mappedBy = "followIdentity.followee")
     private List<User> followeeList;
 
-    public User(String name, String password, Role role) {
+    public User(String username, String name, String password, String profileImageUrl, Date birthday, String phoneNumber, String email, Role role, UserStatus status) {
+        this.username = username;
         this.name = name;
         this.password = password;
+        this.profileImageUrl = profileImageUrl;
+        this.birthday = birthday;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
         this.role = role;
+        this.userStatus = status;
     }
 }

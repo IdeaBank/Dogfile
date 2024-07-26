@@ -6,6 +6,7 @@ import com.honeyosori.dogfile.domain.dog.service.DogService;
 import com.honeyosori.dogfile.global.response.BaseResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,13 +21,18 @@ public class DogController {
         this.dogService = dogService;
     }
 
-    @PostMapping
+    @PostMapping()
     public BaseResponse<?> registerDog(@RequestBody RegisterDogDto registerDogDto) {
         return this.dogService.registerDog(registerDogDto);
     }
 
-    @PostMapping
+    @PostMapping("/breed")
     public BaseResponse<?> createBreed(@RequestBody CreateBreedDto createBreedDto) {
         return this.dogService.createBreed(createBreedDto);
+    }
+
+    @GetMapping("/breed")
+    public BaseResponse<?> getBreed() {
+        return this.dogService.getBreedList();
     }
 }

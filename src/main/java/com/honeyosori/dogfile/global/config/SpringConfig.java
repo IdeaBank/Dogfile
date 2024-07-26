@@ -27,7 +27,7 @@ public class SpringConfig {
 
     @Bean
     public UserService userService() {
-        return new UserService(userRepository, badgeRepository, ownBadgeRepository);
+        return new UserService(userRepository, blockRepository, followRepository, badgeRepository, ownBadgeRepository);
     }
 
     @Bean

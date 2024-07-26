@@ -11,7 +11,7 @@ import java.util.List;
 public class Badge {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     @Column
     private String title;
@@ -19,7 +19,7 @@ public class Badge {
     @Column
     private String description;
 
-    @OneToMany(mappedBy = "badge", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "badge")
     private List<OwnBadge> badgeList;
 
     public Badge(String title, String description) {

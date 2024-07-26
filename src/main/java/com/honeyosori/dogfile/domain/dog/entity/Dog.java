@@ -20,11 +20,14 @@ public class Dog {
     @Column
     private String name;
 
+    @Setter
     @OneToOne(fetch = FetchType.LAZY)
     private Breed breed;
 
-    public Dog(String name, Breed breed) {
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    public Dog(String name) {
         this.name = name;
-        this.breed = breed;
     }
 }
