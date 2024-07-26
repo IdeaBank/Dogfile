@@ -3,6 +3,8 @@ package com.honeyosori.dogfile.global.utility;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
@@ -17,9 +19,6 @@ public class JwtUtility {
     private final Long jwtExpiration;
 
     public JwtUtility(@Value("${jwt.secret}") String secret, @Value("${jwt.expiration}") long jwtExpiration) {
-        //TODO: fix error: TEMP_SECRET
-        secret = "iHixb3jBQEqLIJCQvWgMnQKianUU50A7LcAf1gyQWHA";
-
         byte[] keyBytes = Decoders.BASE64.decode(secret);
         this.key = Keys.hmacShaKeyFor(keyBytes);
         this.jwtExpiration = jwtExpiration;
