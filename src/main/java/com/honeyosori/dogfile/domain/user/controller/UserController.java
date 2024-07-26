@@ -8,6 +8,7 @@ import com.honeyosori.dogfile.global.response.BindingResultMessage;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,8 +31,8 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public void login(@Valid @RequestBody LoginDto loginDto, HttpServletResponse response) {
-        this.userService.login(loginDto, response);
+    public ResponseEntity<?> login(@Valid @RequestBody LoginDto loginDto) {
+        return this.userService.login(loginDto);
     }
 
     @PatchMapping

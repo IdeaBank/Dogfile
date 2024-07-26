@@ -11,7 +11,7 @@ import java.sql.Date;
 
 public record CreateUserDto(@NotNull String username,
                             @NotNull String name,
-                            @NotNull @JsonIgnore String password,
+                            @NotNull String password,
                             @NotNull String profileImageUrl,
                             @NotNull Date birthday,
                             @NotNull String phoneNumber,

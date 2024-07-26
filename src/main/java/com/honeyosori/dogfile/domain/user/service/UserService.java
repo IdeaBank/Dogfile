@@ -11,12 +11,18 @@ import com.honeyosori.dogfile.global.utility.JwtUtility;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.net.HttpCookie;
 import java.net.http.HttpResponse;
 
 @Service
@@ -39,6 +45,7 @@ public class UserService {
         this.jwtUtility = jwtUtility;
     }
 
+    @Transactional
     public BaseResponse<?> register(CreateUserDto createUserDto) {
         User user = createUserDto.toUser();
         user.setPassword(encoder.encode(user.getPassword()));
@@ -86,33 +93,30 @@ public class UserService {
         return new BaseResponse<>(BaseResponseStatus.UPDATED, updateUserDto);
     }
 
-    public void login(LoginDto loginDto, HttpServletResponse httpServletResponse) {
+    public ResponseEntity<?> login(LoginDto loginDto) {
         String username = loginDto.username();
         String password = loginDto.password();
 
         User user = this.userRepository.findUserByUsername(username).orElse(null);
 
         if (user == null) {
-            httpServletResponse.setStatus(BaseResponseStatus.USER_NOT_FOUND.getStatus());
-
-            return;
+            return BaseResponse.getResponseEntity(new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null));
         }
 
         if(encoder.matches(password, user.getPassword())) {
             String accessToken = jwtUtility.generateAccessToken(username);
 
-            httpServletResponse.setStatus(HttpStatus.OK.value());
-            httpServletResponse.addHeader("Authorization", "Bearer " + accessToken);
-            httpServletResponse.addHeader("Access-Control-Expose-Headers", "Authorization");
+            HttpHeaders responseHeaders = new HttpHeaders();
+            responseHeaders.set("Authorization", accessToken);
 
-            //TODO: Refresh token
-            Cookie cookie = new Cookie("refresh_token", accessToken);
+            HttpCookie cookie = new HttpCookie("refresh_token", accessToken);
             cookie.setPath("/");
 
-            httpServletResponse.addCookie(cookie);
+            ResponseEntity<?> response = BaseResponse.getResponseEntity(new BaseResponse<>(BaseResponseStatus.SUCCESS, null));
+            return response.ok().headers(responseHeaders).body(cookie);
         }
 
-        httpServletResponse.setStatus(BaseResponseStatus.WRONG_PASSWORD.getStatus());
+        return BaseResponse.getResponseEntity(new BaseResponse<>(BaseResponseStatus.WRONG_PASSWORD, null));
     }
 
     public BaseResponse<?> deleteUser() {

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.honeyosori.dogfile.global.constant.Role;
 import com.honeyosori.dogfile.global.constant.UserStatus;
 
-public record UpdateUserDto(@JsonIgnore String password,
+public record UpdateUserDto(String password,
                             String profileImageUrl,
                             String phoneNumber,
                             String email,
