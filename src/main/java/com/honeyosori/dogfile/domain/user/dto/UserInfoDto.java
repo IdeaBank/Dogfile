@@ -15,7 +15,7 @@ public record UserInfoDto(String username,
                           Role role,
                           UserStatus userStatus) {
     public static UserInfoDto of(User user) {
-        return new UserInfoDto(user.getUsername(), user.getName(),
+        return new UserInfoDto(user.getUsername(), user.getRealName(),
                 user.getProfileImageUrl(), user.getBirthday(),
                 user.getPhoneNumber(), user.getEmail(),
                 user.getRole(), user.getUserStatus());

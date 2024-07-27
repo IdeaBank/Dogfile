@@ -22,7 +22,7 @@ public enum BaseResponseStatus {
     UNAUTHENTICATED(false, HttpStatus.UNAUTHORIZED.value(), "Unauthorized access"),
     // Can't access to specific method
 
-    EMAIL_EXIST(false, HttpStatus.CONFLICT.value(), "Same email already exists"),
+    USERNAME_EXISTS(false, HttpStatus.CONFLICT.value(), "Same username already exists"),
     BADGE_EXIST(false, HttpStatus.CONFLICT.value(), "Badge already exists"),
     BREED_EXIST(false, HttpStatus.CONFLICT.value(), "Breed already exists"),
 

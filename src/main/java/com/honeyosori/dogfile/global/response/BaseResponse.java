@@ -3,6 +3,7 @@ package com.honeyosori.dogfile.global.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import lombok.Getter;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 public class BaseResponse<T> {
     @JsonProperty("result")
     private boolean result;
+    @Getter
     @JsonProperty("code")
     private Integer code;
     @JsonProperty("message")

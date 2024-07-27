@@ -18,6 +18,7 @@ import java.util.List;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {
+    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -28,7 +29,7 @@ public class User {
 
     @Getter
     @Column
-    private String name;
+    private String realName;
 
     @Getter
     @Setter
@@ -87,9 +88,9 @@ public class User {
     @OneToMany(targetEntity = Follow.class, mappedBy = "followIdentity.followee")
     private List<User> followeeList;
 
-    public User(String username, String name, String password, String profileImageUrl, Date birthday, String phoneNumber, String email, Role role, UserStatus status) {
+    public User(String username, String realName, String password, String profileImageUrl, Date birthday, String phoneNumber, String email, Role role, UserStatus status) {
         this.username = username;
-        this.name = name;
+        this.realName = realName;
         this.password = password;
         this.profileImageUrl = profileImageUrl;
         this.birthday = birthday;

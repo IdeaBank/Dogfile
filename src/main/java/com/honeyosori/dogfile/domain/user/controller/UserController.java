@@ -3,13 +3,12 @@ package com.honeyosori.dogfile.domain.user.controller;
 import com.honeyosori.dogfile.domain.user.dto.*;
 import com.honeyosori.dogfile.domain.user.service.UserService;
 import com.honeyosori.dogfile.global.response.BaseResponse;
-import com.honeyosori.dogfile.global.response.BaseResponseStatus;
-import com.honeyosori.dogfile.global.response.BindingResultMessage;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,8 +25,8 @@ public class UserController {
     }
 
     @PostMapping
-    public BaseResponse<?> createUser(@Valid @RequestBody CreateUserDto createUserDto) {
-        return this.userService.register(createUserDto);
+    public ResponseEntity<?> createUser(@Valid @RequestBody CreateUserDto createUserDto) {
+        return BaseResponse.getResponseEntity(this.userService.register(createUserDto));
     }
 
     @PostMapping("/login")
@@ -36,32 +35,37 @@ public class UserController {
     }
 
     @PatchMapping
-    public BaseResponse<?> updateUser(@Valid @RequestBody UpdateUserDto updateUserDto) {
-        return this.userService.updateUser(updateUserDto);
+    public ResponseEntity<?> updateUser(@Valid @RequestBody UpdateUserDto updateUserDto, Authentication authentication) {
+        return BaseResponse.getResponseEntity(this.userService.updateUser(updateUserDto, authentication.getName()));
     }
 
     @DeleteMapping
-    public BaseResponse<?> deleteUser() {
-        return this.userService.deleteUser();
+    public ResponseEntity<?> deleteUser(Authentication authentication) {
+        return BaseResponse.getResponseEntity(this.userService.deleteUser(authentication.getName()));
     }
 
     @PostMapping("/follow")
-    public BaseResponse<?> followUser(@Valid @RequestBody FollowDto followDto) {
-        return this.userService.follow(followDto);
+    public ResponseEntity<?> followUser(@Valid @RequestBody FollowDto followDto, Authentication authentication) {
+        return BaseResponse.getResponseEntity(this.userService.follow(followDto, authentication.getName()));
     }
 
     @PostMapping("/block")
-    public BaseResponse<?> blockUser(@Valid @RequestBody BlockDto blockDto) {
-        return this.userService.block(blockDto);
+    public ResponseEntity<?> blockUser(@Valid @RequestBody BlockDto blockDto, Authentication authentication) {
+        return BaseResponse.getResponseEntity(this.userService.block(blockDto, authentication.getName()));
     }
 
     @PostMapping("/unfollow")
-    public BaseResponse<?> unfollowUser(@Valid @RequestBody FollowDto followDto) {
-        return this.userService.unfollow(followDto);
+    public ResponseEntity<?> unfollowUser(@Valid @RequestBody FollowDto followDto, Authentication authentication) {
+        return BaseResponse.getResponseEntity(this.userService.unfollow(followDto, authentication.getName()));
     }
 
     @PostMapping("/unblock")
-    public BaseResponse<?> unblockUser(@Valid @RequestBody BlockDto blockDto) {
-        return this.userService.unblock(blockDto);
+    public ResponseEntity<?> unblockUser(@Valid @RequestBody BlockDto blockDto, Authentication authentication) {
+        return BaseResponse.getResponseEntity(this.userService.unblock(blockDto, authentication.getName()));
+    }
+
+    @PutMapping("/add-badge")
+    public ResponseEntity<?> addBadge(@Valid @RequestBody AddBadgeDto addBadgeDto, Authentication authentication) {
+        return BaseResponse.getResponseEntity(this.userService.addBadge(addBadgeDto, authentication.getName()));
     }
 }
