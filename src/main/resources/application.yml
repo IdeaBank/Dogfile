@@ -12,7 +12,7 @@ spring:
     show-sql: true
     open-in-view: false
     hibernate:
-      ddl-auto: "${DB_DDL_MODE}"
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
