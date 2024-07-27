@@ -1,4 +1,6 @@
 package com.honeyosori.dogfile.domain.user.dto;
 
-public record FollowDto(Long followeeId) {
+import jakarta.validation.constraints.NotNull;
+
+public record FollowDto(@NotNull Long followeeId) {
 }

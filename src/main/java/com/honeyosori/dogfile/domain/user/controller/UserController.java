@@ -54,4 +54,14 @@ public class UserController {
     public BaseResponse<?> blockUser(@Valid @RequestBody BlockDto blockDto) {
         return this.userService.block(blockDto);
     }
+
+    @PostMapping("/unfollow")
+    public BaseResponse<?> unfollowUser(@Valid @RequestBody FollowDto followDto) {
+        return this.userService.unfollow(followDto);
+    }
+
+    @PostMapping("/unblock")
+    public BaseResponse<?> unblockUser(@Valid @RequestBody BlockDto blockDto) {
+        return this.userService.unblock(blockDto);
+    }
 }
