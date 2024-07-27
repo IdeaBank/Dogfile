@@ -6,6 +6,8 @@ import com.honeyosori.dogfile.global.constant.Role;
 import com.honeyosori.dogfile.global.constant.UserStatus;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.sql.Date;
 
@@ -13,7 +15,7 @@ public record CreateUserDto(@NotNull String username,
                             @NotNull String name,
                             @NotNull String password,
                             @NotNull String profileImageUrl,
-                            @NotNull Date birthday,
+                            @DateTimeFormat(pattern="yyyy-MM-dd") @Past @NotNull Date birthday,
                             @NotNull String phoneNumber,
                             @NotNull @Email String email,
                             @NotNull Role role,
