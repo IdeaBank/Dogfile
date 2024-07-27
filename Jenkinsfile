@@ -64,7 +64,7 @@ spec:
                     NEW_TAG = sh(
                         script: 'git log -1 --pretty=%h',
                         returnStdout: true
-                    )
+                    ).trim()
                 }
                 container('kaniko') {
                     sh "/kaniko/executor --verbosity debug --insecure --skip-tls-verify --dockerfile=./Dockerfile \
@@ -84,7 +84,7 @@ spec:
                         rm -rf ./helm-chart-repo
                         git clone http://${env.GITLAB_USERNAME}:${TOKEN}@${params.helm_chart}
                         cd ./${params.helm_chart_name}/${params.application_name}
-                        sed -i "s|tag: .*\$|tag: \"${NEW_TAG}\"|g" ./values.yaml
+                        sed -i "s|tag: .*\$|tag: ${NEW_TAG}|g" ./values.yaml
 
                         git config --local user.email "jenkins_bot@honeyossori.com"
                         git config --local user.name "jenkins_bot"
