@@ -8,16 +8,16 @@ import com.honeyosori.dogfile.domain.user.identity.*;
 import com.honeyosori.dogfile.domain.user.repository.*;
 import com.honeyosori.dogfile.global.response.*;
 import com.honeyosori.dogfile.global.utility.JwtUtility;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.net.http.HttpResponse;
+import java.net.HttpCookie;
 
 @Service
 public class UserService {
@@ -39,19 +39,26 @@ public class UserService {
         this.jwtUtility = jwtUtility;
     }
 
+    @Transactional
     public BaseResponse<?> register(CreateUserDto createUserDto) {
-        User user = createUserDto.toUser();
-        user.setPassword(encoder.encode(user.getPassword()));
+        String username = createUserDto.username();
 
-        this.userRepository.save(user);
+        User user = this.userRepository.findUserByUsername(username).orElse(null);
+
+        if(user != null) {
+            return new BaseResponse<>(BaseResponseStatus.USERNAME_EXISTS, null);
+        }
+
+        User newUser = createUserDto.toUser();
+        newUser.setPassword(encoder.encode(newUser.getPassword()));
+
+        this.userRepository.save(newUser);
 
         return new BaseResponse<>(BaseResponseStatus.CREATED, createUserDto);
     }
 
-    public BaseResponse<?> updateUser(UpdateUserDto updateUserDto) {
-        // TODO: User ID
-        Long userId = 1L;
-        User user = this.userRepository.getUserById(userId);
+    public BaseResponse<?> updateUser(UpdateUserDto updateUserDto, String username) {
+        User user = this.userRepository.getUserByUsername(username);
 
         if (user == null) {
             return new BaseResponse<>(BaseResponseStatus.INVALID_JWT_TOKEN, null);
@@ -86,55 +93,50 @@ public class UserService {
         return new BaseResponse<>(BaseResponseStatus.UPDATED, updateUserDto);
     }
 
-    public void login(LoginDto loginDto, HttpServletResponse httpServletResponse) {
+    public ResponseEntity<?> login(LoginDto loginDto) {
         String username = loginDto.username();
         String password = loginDto.password();
 
         User user = this.userRepository.findUserByUsername(username).orElse(null);
 
         if (user == null) {
-            httpServletResponse.setStatus(BaseResponseStatus.USER_NOT_FOUND.getStatus());
-
-            return;
+            return BaseResponse.getResponseEntity(new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null));
         }
 
         if(encoder.matches(password, user.getPassword())) {
             String accessToken = jwtUtility.generateAccessToken(username);
 
-            httpServletResponse.setStatus(HttpStatus.OK.value());
-            httpServletResponse.addHeader("Authorization", "Bearer " + accessToken);
-            httpServletResponse.addHeader("Access-Control-Expose-Headers", "Authorization");
+            HttpHeaders responseHeaders = new HttpHeaders();
+            responseHeaders.set("Authorization", accessToken);
 
-            //TODO: Refresh token
-            Cookie cookie = new Cookie("refresh_token", accessToken);
+            HttpCookie cookie = new HttpCookie("refresh_token", accessToken);
             cookie.setPath("/");
 
-            httpServletResponse.addCookie(cookie);
+            responseHeaders.add(HttpHeaders.SET_COOKIE, cookie.toString().replace("\"", ""));
+
+            return ResponseEntity.ok().headers(responseHeaders).build();
         }
 
-        httpServletResponse.setStatus(BaseResponseStatus.WRONG_PASSWORD.getStatus());
+        return BaseResponse.getResponseEntity(new BaseResponse<>(BaseResponseStatus.WRONG_PASSWORD, null));
     }
 
-    public BaseResponse<?> deleteUser() {
-        // TODO: User ID
-        Long userId = 1L;
-        User user = this.userRepository.getUserById(userId);
+    public BaseResponse<?> deleteUser(String username) {
+        User user = this.userRepository.getUserByUsername(username);
         this.userRepository.delete(user);
 
         return new BaseResponse<>(BaseResponseStatus.DELETED, null);
     }
 
-    public BaseResponse<?> addBadge(Long badgeId) {
-        // TODO: User ID
-        Long userId = 1L;
-        User user = this.userRepository.getUserById(userId);
+    public BaseResponse<?> addBadge(AddBadgeDto addBadgeDto, String username) {
+        User user = this.userRepository.getUserByUsername(username);
+        Long badgeId = addBadgeDto.badgeId();
         Badge badge = this.badgeRepository.findById(badgeId).orElse(null);
 
         if (badge == null) {
             return new BaseResponse<>(BaseResponseStatus.BADGE_NOT_FOUND, null);
         }
 
-        boolean isBadgeAdded = this.ownBadgeRepository.existsByUserIdAndBadgeId(userId, badgeId);
+        boolean isBadgeAdded = this.ownBadgeRepository.existsByUserIdAndBadgeId(user.getId(), badgeId);
 
         if (isBadgeAdded) {
             return new BaseResponse<>(BaseResponseStatus.ALREADY_OWN_BADGE, null);
@@ -153,10 +155,8 @@ public class UserService {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, userInfoDto);
     }
 
-    public BaseResponse<?> follow(FollowDto followDto) {
-        // TODO: User ID
-        Long userId = 1L;
-        User user = this.userRepository.getUserById(userId);
+    public BaseResponse<?> follow(FollowDto followDto, String username) {
+        User user = this.userRepository.getUserByUsername(username);
         Long followeeId = followDto.followeeId();
         User followee = this.userRepository.findById(followeeId).orElse(null);
 
@@ -172,12 +172,11 @@ public class UserService {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, follow);
     }
 
-    public BaseResponse<?> unfollow(FollowDto followDto) {
-        // TODO: User ID
-        Long userId = 1L;
+    public BaseResponse<?> unfollow(FollowDto followDto, String username) {
+        User user = this.userRepository.getUserByUsername(username);
         Long followeeId = followDto.followeeId();
 
-        Follow follow = this.followRepository.findByFollowIdentityFollowerIdAndFollowIdentityFolloweeId(userId, followeeId);
+        Follow follow = this.followRepository.findByFollowIdentityFollowerIdAndFollowIdentityFolloweeId(user.getId(), followeeId);
 
         if (follow == null) {
             return new BaseResponse<>(BaseResponseStatus.NOT_FOLLOWING, null);
@@ -188,10 +187,8 @@ public class UserService {
         return new BaseResponse<>(BaseResponseStatus.DELETED, null);
     }
 
-    public BaseResponse<?> block(BlockDto blockDto) {
-        // TODO: User ID
-        Long userId = 1L;
-        User user = this.userRepository.getUserById(userId);
+    public BaseResponse<?> block(BlockDto blockDto, String username) {
+        User user = this.userRepository.getUserByUsername(username);
         Long blockeeId = blockDto.blockeeId();
         User blockee = this.userRepository.findById(blockeeId).orElse(null);
 
@@ -207,12 +204,11 @@ public class UserService {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, block);
     }
 
-    public BaseResponse<?> unblock(BlockDto blockDto) {
-        // TODO: User ID
-        Long userId = 1L;
+    public BaseResponse<?> unblock(BlockDto blockDto, String username) {
+        User user = this.userRepository.getUserByUsername(username);
         Long blockeeId = blockDto.blockeeId();
 
-        Block block = this.blockRepository.findBlockByBlockIdentityBlockerIdAndBlockIdentityBlockeeId(userId, blockeeId);
+        Block block = this.blockRepository.findBlockByBlockIdentityBlockerIdAndBlockIdentityBlockeeId(user.getId(), blockeeId);
 
         if (block == null) {
             return new BaseResponse<>(BaseResponseStatus.NOT_BLOCKING, null);

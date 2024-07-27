@@ -6,6 +6,7 @@ import com.honeyosori.dogfile.global.response.BaseResponse;
 import com.honeyosori.dogfile.global.response.BaseResponseStatus;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +21,7 @@ public class BadgeController {
     }
 
     @PostMapping
-    public BaseResponse<?> createBadge(@Valid @RequestBody CreateBadgeDto createBadgeDto) {
-        return this.badgeService.createBadge(createBadgeDto);
+    public HttpEntity<?> createBadge(@Valid @RequestBody CreateBadgeDto createBadgeDto) {
+        return BaseResponse.getResponseEntity(this.badgeService.createBadge(createBadgeDto));
     }
 }

@@ -4,12 +4,17 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.honeyosori.dogfile.global.constant.Role;
 import com.honeyosori.dogfile.global.constant.UserStatus;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import org.springframework.format.annotation.DateTimeFormat;
 
-public record UpdateUserDto(@JsonIgnore String password,
-                            String profileImageUrl,
-                            String phoneNumber,
-                            String email,
-                            Role role,
-                            UserStatus userStatus) {
+import java.sql.Date;
+
+public record UpdateUserDto(@NotNull String password,
+                            @NotNull String profileImageUrl,
+                            @DateTimeFormat(pattern="yyyy-MM-dd") @Past @NotNull Date birthday,
+                            @NotNull String phoneNumber,
+                            @NotNull String email,
+                            @NotNull Role role,
+                            @NotNull UserStatus userStatus) {
 }
-
