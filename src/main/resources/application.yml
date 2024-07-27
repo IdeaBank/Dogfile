@@ -9,7 +9,7 @@ spring:
     show-sql: true
     open-in-view: false
     hibernate:
-      ddl-auto: validate
+      ddl-auto: "${DB_DDL_MODE}"
 
 jwt:
   secret: "iHixb3jBQEqLIJCQvWgMnQKianUU50A7LcAf1gyQWHA"
