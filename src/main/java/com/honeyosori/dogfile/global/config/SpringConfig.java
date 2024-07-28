@@ -8,6 +8,7 @@ import com.honeyosori.dogfile.domain.dog.service.DogService;
 import com.honeyosori.dogfile.domain.user.repository.BlockRepository;
 import com.honeyosori.dogfile.domain.user.repository.FollowRepository;
 import com.honeyosori.dogfile.domain.user.repository.UserRepository;
+import com.honeyosori.dogfile.domain.user.repository.WithdrawWaitingRepository;
 import com.honeyosori.dogfile.domain.user.service.UserService;
 import com.honeyosori.dogfile.global.utility.JwtUtility;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class SpringConfig {
     private final UserRepository userRepository;
+    private final WithdrawWaitingRepository withdrawWaitingRepository;
     private final BlockRepository blockRepository;
     private final FollowRepository followRepository;
     private final DogRepository dogRepository;
@@ -29,7 +31,7 @@ public class SpringConfig {
 
     @Bean
     public UserService userService() {
-        return new UserService(userRepository, blockRepository, followRepository, badgeRepository, ownBadgeRepository, jwtUtility);
+        return new UserService(userRepository, withdrawWaitingRepository, blockRepository, followRepository, badgeRepository, ownBadgeRepository, jwtUtility);
     }
 
     @Bean

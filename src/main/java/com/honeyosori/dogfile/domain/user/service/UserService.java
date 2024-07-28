@@ -22,6 +22,7 @@ import java.net.HttpCookie;
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final WithdrawWaitingRepository withdrawWaitingRepository;
     private final BlockRepository blockRepository;
     private final FollowRepository followRepository;
     private final BadgeRepository badgeRepository;
@@ -30,8 +31,9 @@ public class UserService {
     private final JwtUtility jwtUtility;
 
     @Autowired
-    public UserService(UserRepository userRepository, BlockRepository blockRepository, FollowRepository followRepository, BadgeRepository badgeRepository, OwnBadgeRepository ownBadgeRepository, JwtUtility jwtUtility) {
+    public UserService(UserRepository userRepository, WithdrawWaitingRepository withdrawWaitingRepository, BlockRepository blockRepository, FollowRepository followRepository, BadgeRepository badgeRepository, OwnBadgeRepository ownBadgeRepository, JwtUtility jwtUtility) {
         this.userRepository = userRepository;
+        this.withdrawWaitingRepository = withdrawWaitingRepository;
         this.blockRepository = blockRepository;
         this.followRepository = followRepository;
         this.badgeRepository = badgeRepository;
@@ -122,7 +124,15 @@ public class UserService {
 
     public BaseResponse<?> deleteUser(String username) {
         User user = this.userRepository.getUserByUsername(username);
-        this.userRepository.delete(user);
+
+        if(this.withdrawWaitingRepository.existsByUserId(user.getId())) {
+            return new BaseResponse<>(BaseResponseStatus.ALREADY_WAITING_FOR_WITHDRAW, null);
+        }
+
+        WithdrawWaiting withdrawWaiting = new WithdrawWaiting(user);
+        this.withdrawWaitingRepository.save(withdrawWaiting);
+
+        //this.userRepository.delete(user);
 
         return new BaseResponse<>(BaseResponseStatus.DELETED, null);
     }
