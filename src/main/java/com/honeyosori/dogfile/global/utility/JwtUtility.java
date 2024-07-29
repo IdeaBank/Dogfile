@@ -1,5 +1,7 @@
 package com.honeyosori.dogfile.global.utility;
 
+import com.honeyosori.dogfile.domain.user.entity.User;
+import com.honeyosori.dogfile.global.response.BaseResponseStatus;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -9,14 +11,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @PropertySource("classpath:application.yml")
 @Component
@@ -45,25 +47,28 @@ public class JwtUtility {
         return Jwts.parser().verifyWith((SecretKey) key).build().parseSignedClaims(token).getPayload();
     }
 
-    public String generateAccessToken(String username) {
-        Date now = new Date();
+    public Map<String, Object> createClaims(String username, String password) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("username", username);
+        claims.put("password", password);
 
-        return Jwts.builder().subject(username).issuedAt(now).expiration(new Date(now.getTime() + jwtExpiration)).signWith(key).compact();
+        return claims;
     }
 
-    public boolean validateToken(String token) {
+    public String generateAccessToken(String username, String password) {
+        Date now = new Date();
+
+        return Jwts.builder().claims(createClaims(username, password)).issuedAt(now).expiration(new Date(now.getTime() + jwtExpiration)).signWith(key).compact();
+    }
+
+    public BaseResponseStatus validateToken(String token) {
         try {
             Jwts.parser().verifyWith((SecretKey) key).build().parseSignedClaims(token);
-            return true;
-        } catch (SecurityException | MalformedJwtException e) {
-            logger.info("Invalid JWT signature, 유효하지 않는 JWT 서명 입니다.");
+            return BaseResponseStatus.SUCCESS;
+        } catch (SecurityException | MalformedJwtException | UnsupportedJwtException | IllegalArgumentException e) {
+            return BaseResponseStatus.INVALID_JWT_TOKEN;
         } catch (ExpiredJwtException e) {
-            logger.info("Expired JWT token, 만료된 JWT token 입니다.");
-        } catch (UnsupportedJwtException e) {
-            logger.info("Unsupported JWT token, 지원되지 않는 JWT 토큰 입니다.");
-        } catch (IllegalArgumentException e) {
-            logger.info("JWT claims is empty, 잘못된 JWT 토큰 입니다.");
+            return BaseResponseStatus.EXPIRED_JWT_TOKEN;
         }
-        return false;
     }
 }

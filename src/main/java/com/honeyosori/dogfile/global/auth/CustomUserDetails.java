@@ -1,8 +1,10 @@
 package com.honeyosori.dogfile.global.auth;
 
 import com.honeyosori.dogfile.domain.user.entity.User;
-import com.honeyosori.dogfile.global.constant.Role;
-import lombok.RequiredArgsConstructor;
+import com.honeyosori.dogfile.domain.user.repository.UserRepository;
+import com.honeyosori.dogfile.global.constant.UserStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,21 +12,20 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class CustomUserDetails implements UserDetails {
     private final CustomUserInfoDto customUserInfoDto;
+    private final UserRepository userRepository;
 
-    public CustomUserDetails(User user) {
+    public CustomUserDetails(User user, UserRepository userRepository) {
         this.customUserInfoDto = new CustomUserInfoDto(user);
+        this.userRepository = userRepository;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<String> authorities = new ArrayList<>();
-        authorities.add("ROLE_" + Role.DEFAULT.toString());
-        authorities.add("ROLE_" + Role.USER.toString());
-        authorities.add("ROLE_" + Role.ADMIN.toString());
+        authorities.add("ROLE_" + customUserInfoDto.getRole());
 
         return authorities.stream()
                 .map(SimpleGrantedAuthority::new)
@@ -49,12 +50,14 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return customUserInfoDto.getUserStatus() != UserStatus.WITHDRAW;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
+        User user = this.userRepository.getUserByUsername(customUserInfoDto.getUsername());
+
+        return user.getPassword().equals(customUserInfoDto.getPassword());
     }
 
     @Override

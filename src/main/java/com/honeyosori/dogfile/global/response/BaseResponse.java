@@ -3,6 +3,8 @@ package com.honeyosori.dogfile.global.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -29,5 +31,18 @@ public class BaseResponse<T> {
 
     public static ResponseEntity<?> getResponseEntity(BaseResponse<?> baseResponse) {
         return new ResponseEntity<>(baseResponse, HttpStatusCode.valueOf(baseResponse.code));
+    }
+
+    @Override
+    public String toString() {
+        ObjectMapper mapper = new ObjectMapper();
+
+        try {
+            return mapper.writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            e.fillInStackTrace();
+        }
+
+        return null;
     }
 }

@@ -20,6 +20,12 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = this.userRepository.findUserByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("해당하는 유저가 없습니다."));
 
-        return new CustomUserDetails(user);
+        CustomUserDetails customUserDetails = new CustomUserDetails(user, userRepository);
+
+        if(customUserDetails.isCredentialsNonExpired() && customUserDetails.isAccountNonLocked()) {
+            return customUserDetails;
+        }
+
+        return null;
     }
 }

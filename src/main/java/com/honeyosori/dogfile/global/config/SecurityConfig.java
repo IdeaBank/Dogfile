@@ -35,12 +35,19 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(httpRequests ->
-                        httpRequests
-                                .requestMatchers(HttpMethod.POST, "/v1/user").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/v1/user/login").permitAll()
-                                .anyRequest().authenticated()
+                        httpRequests.requestMatchers(HttpMethod.OPTIONS).permitAll()
                 )
-                .addFilterBefore(new JwtAuthFilter(customUserDetailsService, jwtUtility), UsernamePasswordAuthenticationFilter.class);
+                .authorizeHttpRequests(httpRequests ->
+                        httpRequests
+                                .requestMatchers(HttpMethod.POST, "/v1/dog/breed").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/v1/user/info").hasRole("ADMIN")
+                )
+                .authorizeHttpRequests(httpRequests ->
+                        httpRequests
+                                .anyRequest().permitAll()
+                )
+                .addFilterBefore(new JwtAuthFilter(customUserDetailsService, jwtUtility), UsernamePasswordAuthenticationFilter.class)
+        ;
 
         return http.build();
     }

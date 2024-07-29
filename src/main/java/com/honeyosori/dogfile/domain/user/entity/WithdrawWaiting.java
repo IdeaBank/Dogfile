@@ -1,9 +1,6 @@
 package com.honeyosori.dogfile.domain.user.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import jdk.jfr.Timestamp;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -15,16 +12,21 @@ import java.time.LocalDateTime;
 @Entity(name = "withdraw_waiting")
 public class WithdrawWaiting {
     @Id
-    @OneToOne
-    public User user;
+    @Column(name = "user_id")
+    private long id;
+
+    @OneToOne(fetch = FetchType.EAGER)
+    @MapsId
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @CreationTimestamp
     @Column(name = "request_at")
-    public LocalDateTime requestAt;
+    private LocalDateTime requestAt;
 
     @Timestamp
     @Column(name = "withdraw_at")
-    public LocalDateTime withdrawAt;
+    private LocalDateTime withdrawAt;
 
     public WithdrawWaiting(User user) {
         this.user = user;

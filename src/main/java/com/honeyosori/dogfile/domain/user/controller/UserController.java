@@ -68,4 +68,9 @@ public class UserController {
     public ResponseEntity<?> addBadge(@Valid @RequestBody AddBadgeDto addBadgeDto, Authentication authentication) {
         return BaseResponse.getResponseEntity(this.userService.addBadge(addBadgeDto, authentication.getName()));
     }
+
+    @GetMapping("/info")
+    public ResponseEntity<?> getUserInfo(Authentication authentication) {
+        return BaseResponse.getResponseEntity(this.userService.getUserInfo(authentication.getName()));
+    }
 }

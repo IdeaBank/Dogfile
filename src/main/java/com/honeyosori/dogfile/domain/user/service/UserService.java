@@ -9,8 +9,6 @@ import com.honeyosori.dogfile.domain.user.repository.*;
 import com.honeyosori.dogfile.global.response.*;
 import com.honeyosori.dogfile.global.utility.JwtUtility;
 import jakarta.transaction.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -106,7 +104,7 @@ public class UserService {
         }
 
         if(encoder.matches(password, user.getPassword())) {
-            String accessToken = jwtUtility.generateAccessToken(username);
+            String accessToken = jwtUtility.generateAccessToken(username, user.getPassword());
 
             HttpHeaders responseHeaders = new HttpHeaders();
             responseHeaders.set("Authorization", accessToken);
@@ -158,8 +156,13 @@ public class UserService {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, ownBadge);
     }
 
-    public BaseResponse<?> getUserInfo(Long userId) {
-        User user = this.userRepository.getUserById(userId);
+    public BaseResponse<?> getUserInfo(String username) {
+        User user = this.userRepository.findUserByUsername(username).orElse(null);
+
+        if(user == null) {
+            return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
+        }
+
         UserInfoDto userInfoDto = UserInfoDto.of(user);
 
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, userInfoDto);
