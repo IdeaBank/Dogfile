@@ -1,6 +1,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/intellij+all,maven,java,macos,windows,linux,git,dotenv
 # Edit at https://www.toptal.com/developers/gitignore?templates=intellij+all,maven,java,macos,windows,linux,git,dotenv
 
+### YML ###
+src/main/resources/application-credentials.yml
+
 ### dotenv ###
 .env
 
