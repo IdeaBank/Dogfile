@@ -17,6 +17,11 @@ spring:
       hibernate:
         format_sql: true
 
+aws:
+  s3:
+    access_key: "${AWS_ACCESS_KEY}"
+    secret_key: "${AWS_SECRET_KEY}"
+
 jwt:
   secret: "iHixb3jBQEqLIJCQvWgMnQKianUU50A7LcAf1gyQWHA"
   expiration: 100000000
