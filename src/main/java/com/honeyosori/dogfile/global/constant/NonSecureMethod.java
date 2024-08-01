@@ -6,6 +6,7 @@ import org.springframework.http.HttpMethod;
 public enum NonSecureMethod {
     REGISTER(HttpMethod.POST, "/v1/user"),
     LOGIN(HttpMethod.POST, "/v1/user/login"),
+    PHOTO_UPLOAD(HttpMethod.POST, "/v1/photo"),
     HEALTH_CHECK(HttpMethod.GET, "/healthz"),
     ;
 

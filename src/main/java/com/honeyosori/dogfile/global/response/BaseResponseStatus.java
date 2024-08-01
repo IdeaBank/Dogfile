@@ -26,6 +26,9 @@ public enum BaseResponseStatus {
     BADGE_EXIST(false, HttpStatus.CONFLICT.value(), "Badge already exists"),
     BREED_EXIST(false, HttpStatus.CONFLICT.value(), "Breed already exists"),
 
+    WITHDRAW_REQUESTED(false, HttpStatus.CONFLICT.value(), "Withdraw requested"),
+    WITHDRAWN(false, HttpStatus.BAD_REQUEST.value(), "User has withdrawn"),
+
     WRONG_PASSWORD(false, HttpStatus.UNAUTHORIZED.value(), "Invalid password"),
 
     USER_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "User not found"),

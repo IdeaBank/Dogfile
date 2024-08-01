@@ -8,7 +8,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,9 +25,6 @@ public class JwtAuthFilter extends OncePerRequestFilter { // OncePerRequestFilte
     private final JwtUtility jwtUtility;
 
     @Override
-    /**
-     * JWT 토큰 검증 필터 수행
-     */
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
         String token = jwtUtility.resolveToken(request);
         BaseResponseStatus jwtStatus = jwtUtility.validateToken(token);

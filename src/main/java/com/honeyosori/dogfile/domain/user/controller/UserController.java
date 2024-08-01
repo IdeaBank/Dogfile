@@ -64,6 +64,26 @@ public class UserController {
         return BaseResponse.getResponseEntity(this.userService.unblock(blockDto, authentication.getName()));
     }
 
+    @GetMapping("/follower")
+    public ResponseEntity<?> getFollowers(Authentication authentication) {
+        return BaseResponse.getResponseEntity(this.userService.getFollowers(authentication.getName()));
+    }
+
+    @GetMapping("/followee")
+    public ResponseEntity<?> getFollowees(Authentication authentication) {
+        return BaseResponse.getResponseEntity(this.userService.getFollowees(authentication.getName()));
+    }
+
+    @GetMapping("/blocker")
+    public ResponseEntity<?> getBlockers(Authentication authentication) {
+        return BaseResponse.getResponseEntity(this.userService.getBlockers(authentication.getName()));
+    }
+
+    @GetMapping("/blockee")
+    public ResponseEntity<?> getBlockees(Authentication authentication) {
+        return BaseResponse.getResponseEntity(this.userService.getBlockees(authentication.getName()));
+    }
+
     @PutMapping("/add-badge")
     public ResponseEntity<?> addBadge(@Valid @RequestBody AddBadgeDto addBadgeDto, Authentication authentication) {
         return BaseResponse.getResponseEntity(this.userService.addBadge(addBadgeDto, authentication.getName()));

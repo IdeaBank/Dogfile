@@ -3,11 +3,13 @@ package com.honeyosori.dogfile.domain.user.entity;
 import com.honeyosori.dogfile.domain.user.identity.BlockIdentity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 public class Block {
+    @Getter
     @EmbeddedId
     private BlockIdentity blockIdentity;
 

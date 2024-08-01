@@ -8,16 +8,14 @@ import java.sql.Date;
 
 public record UserInfoDto(String username,
                           String name,
+                          String password,
                           String profileImageUrl,
                           Date birthday,
                           String phoneNumber,
-                          String email,
-                          Role role,
-                          UserStatus userStatus) {
+                          String email) {
     public static UserInfoDto of(User user) {
         return new UserInfoDto(user.getUsername(), user.getRealName(),
-                user.getProfileImageUrl(), user.getBirthday(),
-                user.getPhoneNumber(), user.getEmail(),
-                user.getRole(), user.getUserStatus());
+                user.getPassword(), user.getProfileImageUrl(), user.getBirthday(),
+                user.getPhoneNumber(), user.getEmail());
     }
 }

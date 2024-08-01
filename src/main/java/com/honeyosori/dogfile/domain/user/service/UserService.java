@@ -6,6 +6,7 @@ import com.honeyosori.dogfile.domain.user.dto.*;
 import com.honeyosori.dogfile.domain.user.entity.*;
 import com.honeyosori.dogfile.domain.user.identity.*;
 import com.honeyosori.dogfile.domain.user.repository.*;
+import com.honeyosori.dogfile.global.constant.UserStatus;
 import com.honeyosori.dogfile.global.response.*;
 import com.honeyosori.dogfile.global.utility.JwtUtility;
 import jakarta.transaction.Transactional;
@@ -16,7 +17,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.net.HttpCookie;
+import java.util.List;
 
+@Transactional
 @Service
 public class UserService {
     private final UserRepository userRepository;
@@ -39,13 +42,12 @@ public class UserService {
         this.jwtUtility = jwtUtility;
     }
 
-    @Transactional
     public BaseResponse<?> register(CreateUserDto createUserDto) {
         String username = createUserDto.username();
 
         User user = this.userRepository.findUserByUsername(username).orElse(null);
 
-        if(user != null) {
+        if (user != null) {
             return new BaseResponse<>(BaseResponseStatus.USERNAME_EXISTS, null);
         }
 
@@ -103,7 +105,15 @@ public class UserService {
             return BaseResponse.getResponseEntity(new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null));
         }
 
-        if(encoder.matches(password, user.getPassword())) {
+        if (user.getUserStatus() == UserStatus.WITHDRAW_REQUESTED) {
+            return BaseResponse.getResponseEntity(new BaseResponse<>(BaseResponseStatus.WITHDRAW_REQUESTED, null));
+        }
+
+        if (user.getUserStatus() == UserStatus.WITHDRAW) {
+            return BaseResponse.getResponseEntity(new BaseResponse<>(BaseResponseStatus.WITHDRAWN, null));
+        }
+
+        if (encoder.matches(password, user.getPassword())) {
             String accessToken = jwtUtility.generateAccessToken(username, user.getPassword());
 
             HttpHeaders responseHeaders = new HttpHeaders();
@@ -123,7 +133,7 @@ public class UserService {
     public BaseResponse<?> deleteUser(String username) {
         User user = this.userRepository.getUserByUsername(username);
 
-        if(this.withdrawWaitingRepository.existsByUserId(user.getId())) {
+        if (this.withdrawWaitingRepository.existsByUserId(user.getId())) {
             return new BaseResponse<>(BaseResponseStatus.ALREADY_WAITING_FOR_WITHDRAW, null);
         }
 
@@ -159,7 +169,7 @@ public class UserService {
     public BaseResponse<?> getUserInfo(String username) {
         User user = this.userRepository.findUserByUsername(username).orElse(null);
 
-        if(user == null) {
+        if (user == null) {
             return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
         }
 
@@ -182,14 +192,14 @@ public class UserService {
 
         this.followRepository.save(follow);
 
-        return new BaseResponse<>(BaseResponseStatus.SUCCESS, follow);
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, null);
     }
 
     public BaseResponse<?> unfollow(FollowDto followDto, String username) {
         User user = this.userRepository.getUserByUsername(username);
         Long followeeId = followDto.followeeId();
 
-        Follow follow = this.followRepository.findByFollowIdentityFollowerIdAndFollowIdentityFolloweeId(user.getId(), followeeId);
+        Follow follow = this.followRepository.findByFollowIdentity_FollowerIdAndFollowIdentity_FolloweeId(user.getId(), followeeId);
 
         if (follow == null) {
             return new BaseResponse<>(BaseResponseStatus.NOT_FOLLOWING, null);
@@ -214,14 +224,14 @@ public class UserService {
 
         this.blockRepository.save(block);
 
-        return new BaseResponse<>(BaseResponseStatus.SUCCESS, block);
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, null);
     }
 
     public BaseResponse<?> unblock(BlockDto blockDto, String username) {
         User user = this.userRepository.getUserByUsername(username);
         Long blockeeId = blockDto.blockeeId();
 
-        Block block = this.blockRepository.findBlockByBlockIdentityBlockerIdAndBlockIdentityBlockeeId(user.getId(), blockeeId);
+        Block block = this.blockRepository.findBlockByBlockIdentity_BlockerIdAndBlockIdentity_BlockeeId(user.getId(), blockeeId);
 
         if (block == null) {
             return new BaseResponse<>(BaseResponseStatus.NOT_BLOCKING, null);
@@ -230,5 +240,41 @@ public class UserService {
         this.blockRepository.delete(block);
 
         return new BaseResponse<>(BaseResponseStatus.DELETED, null);
+    }
+
+    public BaseResponse<?> getFollowees(String username) {
+        User user = this.userRepository.getUserByUsername(username);
+
+        List<UserInfoDto> followees = this.followRepository.getFollowsByFollowIdentityFollowerId(user.getId())
+                .stream().map(e -> e.getFollowIdentity().getFollowee()).map(UserInfoDto::of).toList();
+
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, followees);
+    }
+
+    public BaseResponse<?> getFollowers(String username) {
+        User user = this.userRepository.getUserByUsername(username);
+
+        List<UserInfoDto> followers = this.followRepository.getFollowsByFollowIdentityFolloweeId(user.getId())
+                .stream().map(e -> e.getFollowIdentity().getFollower()).map(UserInfoDto::of).toList();
+
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, followers);
+    }
+
+    public BaseResponse<?> getBlockees(String username) {
+        User user = this.userRepository.getUserByUsername(username);
+
+        List<UserInfoDto> blockees = this.blockRepository.getBlocksByBlockIdentityBlockerId(user.getId())
+                .stream().map(e -> e.getBlockIdentity().getBlockee()).map(UserInfoDto::of).toList();
+
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, blockees);
+    }
+
+    public BaseResponse<?> getBlockers(String username) {
+        User user = this.userRepository.getUserByUsername(username);
+
+        List<UserInfoDto> blockers = this.blockRepository.getBlocksByBlockIdentityBlockeeId(user.getId())
+                .stream().map(e -> e.getBlockIdentity().getBlocker()).map(UserInfoDto::of).toList();
+
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, blockers);
     }
 }

@@ -1,5 +1,5 @@
 package com.honeyosori.dogfile.global.constant;
 
 public enum UserStatus {
-    PUBLIC, PRIVATE, WITHDRAW
+    PUBLIC, PRIVATE, WITHDRAW_REQUESTED, WITHDRAW
 }

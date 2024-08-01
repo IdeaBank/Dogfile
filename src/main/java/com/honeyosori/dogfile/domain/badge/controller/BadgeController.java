@@ -3,11 +3,10 @@ package com.honeyosori.dogfile.domain.badge.controller;
 import com.honeyosori.dogfile.domain.badge.dto.CreateBadgeDto;
 import com.honeyosori.dogfile.domain.badge.service.BadgeService;
 import com.honeyosori.dogfile.global.response.BaseResponse;
-import com.honeyosori.dogfile.global.response.BaseResponseStatus;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
-import org.springframework.validation.BindingResult;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,5 +22,10 @@ public class BadgeController {
     @PostMapping
     public HttpEntity<?> createBadge(@Valid @RequestBody CreateBadgeDto createBadgeDto) {
         return BaseResponse.getResponseEntity(this.badgeService.createBadge(createBadgeDto));
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getAllBadges() {
+        return BaseResponse.getResponseEntity(this.badgeService.getAllBadge());
     }
 }
