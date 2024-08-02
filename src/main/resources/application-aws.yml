@@ -1,9 +1,6 @@
 cloud:
   aws:
     s3:
-      bucket:
-        dogfile
-    region:
-      static: us-east-2
+      bucket: honeybadgerdogfile
     stack:
       auto: false

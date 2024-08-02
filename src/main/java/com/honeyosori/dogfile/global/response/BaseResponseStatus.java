@@ -41,6 +41,8 @@ public enum BaseResponseStatus {
     ALREADY_OWN_BADGE(false, HttpStatus.CONFLICT.value(), "Badge already owned by user"),
     ALREADY_WAITING_FOR_WITHDRAW(false, HttpStatus.CONFLICT.value(), "Already waiting for withdraw"),
 
+    DATA_TOO_BIG(false, HttpStatus.PAYLOAD_TOO_LARGE.value(), "File is too big"),
+
     EXPIRED_JWT_TOKEN(false, HttpStatus.UNAUTHORIZED.value(), "Expired token"),
     INVALID_JWT_TOKEN(false, HttpStatus.UNAUTHORIZED.value(), "Invalid token"),
 

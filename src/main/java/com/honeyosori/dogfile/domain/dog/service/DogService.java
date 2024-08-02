@@ -30,10 +30,8 @@ public class DogService {
         this.breedRepository = breedRepository;
     }
 
-    public BaseResponse<?> registerDog(RegisterDogDto registerDogDto) {
-        // TODO: User ID
-        Long userId = 1L;
-        User owner = this.userRepository.getUserById(userId);
+    public BaseResponse<?> registerDog(RegisterDogDto registerDogDto, String username) {
+        User owner = this.userRepository.getUserByUsername(username);
         Breed breed = this.breedRepository.findById(registerDogDto.breedId()).orElse(null);
 
         if(breed == null) {

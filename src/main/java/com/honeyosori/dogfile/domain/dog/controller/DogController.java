@@ -7,6 +7,7 @@ import com.honeyosori.dogfile.global.response.BaseResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,9 +24,9 @@ public class DogController {
         this.dogService = dogService;
     }
 
-    @PostMapping()
-    public ResponseEntity<?> registerDog(@Valid @RequestBody RegisterDogDto registerDogDto) {
-        return BaseResponse.getResponseEntity(this.dogService.registerDog(registerDogDto));
+    @PostMapping
+    public ResponseEntity<?> registerDog(@Valid @RequestBody RegisterDogDto registerDogDto, Authentication authentication) {
+        return BaseResponse.getResponseEntity(this.dogService.registerDog(registerDogDto, authentication.getName()));
     }
 
     @PostMapping("/breed")

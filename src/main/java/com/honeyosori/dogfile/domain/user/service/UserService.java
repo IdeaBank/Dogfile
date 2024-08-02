@@ -6,6 +6,7 @@ import com.honeyosori.dogfile.domain.user.dto.*;
 import com.honeyosori.dogfile.domain.user.entity.*;
 import com.honeyosori.dogfile.domain.user.identity.*;
 import com.honeyosori.dogfile.domain.user.repository.*;
+import com.honeyosori.dogfile.global.constant.Role;
 import com.honeyosori.dogfile.global.constant.UserStatus;
 import com.honeyosori.dogfile.global.response.*;
 import com.honeyosori.dogfile.global.utility.JwtUtility;
@@ -52,6 +53,8 @@ public class UserService {
         }
 
         User newUser = createUserDto.toUser();
+        newUser.setRole(Role.USER);
+        newUser.setUserStatus(UserStatus.PUBLIC);
         newUser.setPassword(encoder.encode(newUser.getPassword()));
 
         this.userRepository.save(newUser);
@@ -82,10 +85,6 @@ public class UserService {
             user.setEmail(updateUserDto.email());
         }
 
-        if (updateUserDto.role() != null) {
-            user.setRole(updateUserDto.role());
-        }
-
         if (updateUserDto.userStatus() != null) {
             user.setUserStatus(updateUserDto.userStatus());
         }
@@ -93,6 +92,20 @@ public class UserService {
         this.userRepository.save(user);
 
         return new BaseResponse<>(BaseResponseStatus.UPDATED, updateUserDto);
+    }
+
+    public BaseResponse<?> changeUserStatus(UpdateUserStatusDto updateUserStatusDto, String username) {
+        User user = this.userRepository.getUserByUsername(username);
+        UserStatus userStatus = updateUserStatusDto.userStatus();
+
+        if(userStatus == UserStatus.PUBLIC || userStatus == UserStatus.PRIVATE) {
+            user.setUserStatus(userStatus);
+            this.userRepository.save(user);
+
+            return new BaseResponse<>(BaseResponseStatus.SUCCESS, null);
+        }
+
+        return new BaseResponse<>(BaseResponseStatus.REJECTED, "cannot assign value");
     }
 
     public ResponseEntity<?> login(LoginDto loginDto) {
@@ -140,9 +153,10 @@ public class UserService {
         WithdrawWaiting withdrawWaiting = new WithdrawWaiting(user);
         this.withdrawWaitingRepository.save(withdrawWaiting);
 
-        //this.userRepository.delete(user);
+        user.setUserStatus(UserStatus.WITHDRAW_REQUESTED);
+        this.userRepository.save(user);
 
-        return new BaseResponse<>(BaseResponseStatus.DELETED, null);
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, null);
     }
 
     public BaseResponse<?> addBadge(AddBadgeDto addBadgeDto, String username) {

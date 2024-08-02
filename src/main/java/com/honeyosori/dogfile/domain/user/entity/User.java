@@ -88,7 +88,7 @@ public class User {
     @OneToMany(targetEntity = Follow.class, mappedBy = "followIdentity.followee")
     private List<User> followeeList;
 
-    public User(String username, String realName, String password, String profileImageUrl, Date birthday, String phoneNumber, String email, Role role, UserStatus status) {
+    public User(String username, String realName, String password, String profileImageUrl, Date birthday, String phoneNumber, String email) {
         this.username = username;
         this.realName = realName;
         this.password = password;
@@ -96,7 +96,5 @@ public class User {
         this.birthday = birthday;
         this.phoneNumber = phoneNumber;
         this.email = email;
-        this.role = role;
-        this.userStatus = status;
     }
 }

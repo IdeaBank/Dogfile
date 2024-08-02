@@ -35,8 +35,13 @@ public class UserController {
     }
 
     @PatchMapping
-    public ResponseEntity<?> updateUser(@Valid @RequestBody UpdateUserDto updateUserDto, Authentication authentication) {
+    public ResponseEntity<?> updateUser(@RequestBody UpdateUserDto updateUserDto, Authentication authentication) {
         return BaseResponse.getResponseEntity(this.userService.updateUser(updateUserDto, authentication.getName()));
+    }
+
+    @PatchMapping("/status")
+    public ResponseEntity<?> updateUserStatus(@Valid @RequestBody UpdateUserStatusDto updateUserStatusDto, Authentication authentication) {
+        return BaseResponse.getResponseEntity(this.userService.changeUserStatus(updateUserStatusDto, authentication.getName()));
     }
 
     @DeleteMapping

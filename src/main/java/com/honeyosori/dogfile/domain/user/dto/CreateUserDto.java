@@ -17,10 +17,8 @@ public record CreateUserDto(@NotNull String username,
                             @NotNull String profileImageUrl,
                             @DateTimeFormat(pattern="yyyy-MM-dd") @Past @NotNull Date birthday,
                             @NotNull String phoneNumber,
-                            @NotNull @Email String email,
-                            @NotNull Role role,
-                            @NotNull UserStatus userStatus) {
+                            @NotNull @Email String email) {
     public User toUser() {
-        return new User(username, name, password, profileImageUrl, birthday, phoneNumber, email, role, userStatus);
+        return new User(username, name, password, profileImageUrl, birthday, phoneNumber, email);
     }
 }

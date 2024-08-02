@@ -1,4 +1,4 @@
-package com.honeyosori.dogfile.domain.photo.factory;
+package com.honeyosori.dogfile.domain.upload.factory;
 
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.s3.S3Client;
