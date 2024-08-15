@@ -8,6 +8,7 @@ public enum NonSecureMethod {
     LOGIN(HttpMethod.POST, "/v1/user/login"),
     PHOTO_UPLOAD(HttpMethod.POST, "/v1/upload"),
     HEALTH_CHECK(HttpMethod.GET, "/healthz"),
+    API(HttpMethod.GET, "/api"),
     ;
 
     @Getter

@@ -35,9 +35,6 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(httpRequests ->
-                        httpRequests.requestMatchers(HttpMethod.OPTIONS).permitAll()
-                )
-                .authorizeHttpRequests(httpRequests ->
                         httpRequests
                                 .requestMatchers(HttpMethod.POST, "/v1/badge").hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.POST, "/v1/dog/breed").hasRole("ADMIN")

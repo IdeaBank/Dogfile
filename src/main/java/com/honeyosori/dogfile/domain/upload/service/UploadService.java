@@ -42,7 +42,9 @@ public class UploadService {
         MultipartFile multipartFile = uploadDto.file();
         File file = new File(UUID.randomUUID() + multipartFile.getOriginalFilename());
 
-        System.out.println(multipartFile.getSize());
+        if(multipartFile.isEmpty()) {
+            return BaseResponse.getResponseEntity(new BaseResponse<>(BaseResponseStatus.DATA_EMPTY, null));
+        }
 
         if(multipartFile.getSize() > AwsConstant.MAX_UPLOAD_FILE_SIZE) {
             return BaseResponse.getResponseEntity(new BaseResponse<>(BaseResponseStatus.DATA_TOO_BIG, String.format("%.2f", (float) multipartFile.getSize() / MB) + "MB"));

@@ -11,6 +11,7 @@ public enum BaseResponseStatus {
     CREATED(true, HttpStatus.CREATED.value(), "Create succeeded"),
     UPDATED_WITHOUT_CONTENT(true, HttpStatus.NO_CONTENT.value(), "Update succeeded"),
     DELETED(true, HttpStatus.NO_CONTENT.value(), "Delete succeeded"),
+    DATA_EMPTY(true, HttpStatus.NO_CONTENT.value(), "Data is empty"),
 
     /**
      * 4XX
