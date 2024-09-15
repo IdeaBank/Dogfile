@@ -55,9 +55,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isCredentialsNonExpired() {
-        User user = this.userRepository.getUserByUsername(customUserInfoDto.getUsername());
-
-        return user.getPassword().equals(customUserInfoDto.getPassword());
+        return true;
     }
 
     @Override

@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 public class WithdrawWaiting {
     @Id
     @Column(name = "user_id")
-    private long id;
+    private String id;
 
     @OneToOne(fetch = FetchType.EAGER)
     @MapsId

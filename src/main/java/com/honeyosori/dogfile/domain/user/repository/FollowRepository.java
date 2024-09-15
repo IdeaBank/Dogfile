@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 public interface FollowRepository extends JpaRepository<Follow, FollowIdentity> {
-    Follow findByFollowIdentity_FollowerIdAndFollowIdentity_FolloweeId(Long followerId, Long followeeId);
-    List<Follow> getFollowsByFollowIdentityFollowerId(Long followerId);
-    List<Follow> getFollowsByFollowIdentityFolloweeId(Long followerId);
+    Follow findByFollowIdentity_FollowerIdAndFollowIdentity_FolloweeId(String followerId, String followeeId);
+    List<Follow> getFollowsByFollowIdentityFollowerId(String followerId);
+    List<Follow> getFollowsByFollowIdentityFolloweeId(String followerId);
 }

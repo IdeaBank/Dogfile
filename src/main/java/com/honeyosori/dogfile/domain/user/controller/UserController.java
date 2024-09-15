@@ -2,17 +2,12 @@ package com.honeyosori.dogfile.domain.user.controller;
 
 import com.honeyosori.dogfile.domain.user.dto.*;
 import com.honeyosori.dogfile.domain.user.service.UserService;
+import com.honeyosori.dogfile.global.constant.Role;
 import com.honeyosori.dogfile.global.response.BaseResponse;
 import jakarta.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/v1/user")
@@ -35,67 +30,72 @@ public class UserController {
     }
 
     @PatchMapping
-    public ResponseEntity<?> updateUser(@RequestBody UpdateUserDto updateUserDto, Authentication authentication) {
-        return BaseResponse.getResponseEntity(this.userService.updateUser(updateUserDto, authentication.getName()));
+    public ResponseEntity<?> updateUser(@RequestBody UpdateUserDto updateUserDto, @RequestHeader("X-USERNAME") String username) {
+        return BaseResponse.getResponseEntity(this.userService.updateUser(updateUserDto, username));
     }
 
     @PatchMapping("/status")
-    public ResponseEntity<?> updateUserStatus(@Valid @RequestBody UpdateUserStatusDto updateUserStatusDto, Authentication authentication) {
-        return BaseResponse.getResponseEntity(this.userService.changeUserStatus(updateUserStatusDto, authentication.getName()));
+    public ResponseEntity<?> updateUserStatus(@Valid @RequestBody UpdateUserStatusDto updateUserStatusDto, @RequestHeader("X-USERNAME") String username) {
+        return BaseResponse.getResponseEntity(this.userService.changeUserStatus(updateUserStatusDto, username));
     }
 
     @DeleteMapping
-    public ResponseEntity<?> deleteUser(Authentication authentication) {
-        return BaseResponse.getResponseEntity(this.userService.deleteUser(authentication.getName()));
+    public ResponseEntity<?> deleteUser(@RequestHeader("X-USERNAME") String username) {
+        return BaseResponse.getResponseEntity(this.userService.deleteUser(username));
     }
 
     @PostMapping("/follow")
-    public ResponseEntity<?> followUser(@Valid @RequestBody FollowDto followDto, Authentication authentication) {
-        return BaseResponse.getResponseEntity(this.userService.follow(followDto, authentication.getName()));
+    public ResponseEntity<?> followUser(@Valid @RequestBody FollowDto followDto, @RequestHeader("X-USERNAME") String username) {
+        return BaseResponse.getResponseEntity(this.userService.follow(followDto, username));
     }
 
     @PostMapping("/block")
-    public ResponseEntity<?> blockUser(@Valid @RequestBody BlockDto blockDto, Authentication authentication) {
-        return BaseResponse.getResponseEntity(this.userService.block(blockDto, authentication.getName()));
+    public ResponseEntity<?> blockUser(@Valid @RequestBody BlockDto blockDto, @RequestHeader("X-USERNAME") String username) {
+        return BaseResponse.getResponseEntity(this.userService.block(blockDto, username));
     }
 
     @PostMapping("/unfollow")
-    public ResponseEntity<?> unfollowUser(@Valid @RequestBody FollowDto followDto, Authentication authentication) {
-        return BaseResponse.getResponseEntity(this.userService.unfollow(followDto, authentication.getName()));
+    public ResponseEntity<?> unfollowUser(@Valid @RequestBody FollowDto followDto, @RequestHeader("X-USERNAME") String username) {
+        return BaseResponse.getResponseEntity(this.userService.unfollow(followDto, username));
     }
 
     @PostMapping("/unblock")
-    public ResponseEntity<?> unblockUser(@Valid @RequestBody BlockDto blockDto, Authentication authentication) {
-        return BaseResponse.getResponseEntity(this.userService.unblock(blockDto, authentication.getName()));
+    public ResponseEntity<?> unblockUser(@Valid @RequestBody BlockDto blockDto, @RequestHeader("X-USERNAME") String username) {
+        return BaseResponse.getResponseEntity(this.userService.unblock(blockDto, username));
     }
 
     @GetMapping("/follower")
-    public ResponseEntity<?> getFollowers(Authentication authentication) {
-        return BaseResponse.getResponseEntity(this.userService.getFollowers(authentication.getName()));
+    public ResponseEntity<?> getFollowers(@RequestHeader("X-USERNAME") String username) {
+        return BaseResponse.getResponseEntity(this.userService.getFollowers(username));
     }
 
     @GetMapping("/followee")
-    public ResponseEntity<?> getFollowees(Authentication authentication) {
-        return BaseResponse.getResponseEntity(this.userService.getFollowees(authentication.getName()));
+    public ResponseEntity<?> getFollowees(@RequestHeader("X-USERNAME") String username) {
+        return BaseResponse.getResponseEntity(this.userService.getFollowees(username));
     }
 
     @GetMapping("/blocker")
-    public ResponseEntity<?> getBlockers(Authentication authentication) {
-        return BaseResponse.getResponseEntity(this.userService.getBlockers(authentication.getName()));
+    public ResponseEntity<?> getBlockers(@RequestHeader("X-USERNAME") String username) {
+        return BaseResponse.getResponseEntity(this.userService.getBlockers(username));
     }
 
     @GetMapping("/blockee")
-    public ResponseEntity<?> getBlockees(Authentication authentication) {
-        return BaseResponse.getResponseEntity(this.userService.getBlockees(authentication.getName()));
+    public ResponseEntity<?> getBlockees(@RequestHeader("X-USERNAME") String username) {
+        return BaseResponse.getResponseEntity(this.userService.getBlockees(username));
     }
 
     @PutMapping("/add-badge")
-    public ResponseEntity<?> addBadge(@Valid @RequestBody AddBadgeDto addBadgeDto, Authentication authentication) {
-        return BaseResponse.getResponseEntity(this.userService.addBadge(addBadgeDto, authentication.getName()));
+    public ResponseEntity<?> addBadge(@Valid @RequestBody AddBadgeDto addBadgeDto, @RequestHeader("X-USERNAME") String username) {
+        return BaseResponse.getResponseEntity(this.userService.addBadge(addBadgeDto, username));
     }
 
     @GetMapping("/info")
-    public ResponseEntity<?> getUserInfo(Authentication authentication) {
-        return BaseResponse.getResponseEntity(this.userService.getUserInfo(authentication.getName()));
+    public ResponseEntity<?> getUserInfo(@RequestHeader("X-USERNAME") String username, @RequestHeader("X-ROLE") Role role) {
+        return BaseResponse.getResponseEntity(this.userService.getUserInfo(username));
+    }
+
+    @GetMapping("/login-info")
+    public ResponseEntity<?> getLoginInfo(@RequestHeader("X-USERNAME") String username) {
+        return BaseResponse.getResponseEntity(this.userService.getUserLoginInfo(username));
     }
 }

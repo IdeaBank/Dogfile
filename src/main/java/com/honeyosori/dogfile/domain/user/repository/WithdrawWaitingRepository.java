@@ -5,6 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface WithdrawWaitingRepository extends JpaRepository<WithdrawWaiting, Long> {
-    Boolean existsByUserId(Long id);
+public interface WithdrawWaitingRepository extends JpaRepository<WithdrawWaiting, String> {
+    Boolean existsByUserId(String id);
 }

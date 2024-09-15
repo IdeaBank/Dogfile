@@ -1,14 +1,24 @@
 package com.honeyosori.dogfile.domain.user.service;
 
-import com.honeyosori.dogfile.domain.badge.entity.*;
-import com.honeyosori.dogfile.domain.badge.repository.*;
+import com.honeyosori.dogfile.domain.badge.entity.Badge;
+import com.honeyosori.dogfile.domain.badge.entity.OwnBadge;
+import com.honeyosori.dogfile.domain.badge.repository.BadgeRepository;
+import com.honeyosori.dogfile.domain.badge.repository.OwnBadgeRepository;
 import com.honeyosori.dogfile.domain.user.dto.*;
-import com.honeyosori.dogfile.domain.user.entity.*;
-import com.honeyosori.dogfile.domain.user.identity.*;
-import com.honeyosori.dogfile.domain.user.repository.*;
+import com.honeyosori.dogfile.domain.user.entity.Block;
+import com.honeyosori.dogfile.domain.user.entity.Follow;
+import com.honeyosori.dogfile.domain.user.entity.User;
+import com.honeyosori.dogfile.domain.user.entity.WithdrawWaiting;
+import com.honeyosori.dogfile.domain.user.identity.BlockIdentity;
+import com.honeyosori.dogfile.domain.user.identity.FollowIdentity;
+import com.honeyosori.dogfile.domain.user.repository.BlockRepository;
+import com.honeyosori.dogfile.domain.user.repository.FollowRepository;
+import com.honeyosori.dogfile.domain.user.repository.UserRepository;
+import com.honeyosori.dogfile.domain.user.repository.WithdrawWaitingRepository;
 import com.honeyosori.dogfile.global.constant.Role;
 import com.honeyosori.dogfile.global.constant.UserStatus;
-import com.honeyosori.dogfile.global.response.*;
+import com.honeyosori.dogfile.global.response.BaseResponse;
+import com.honeyosori.dogfile.global.response.BaseResponseStatus;
 import com.honeyosori.dogfile.global.utility.JwtUtility;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,7 +108,7 @@ public class UserService {
         User user = this.userRepository.getUserByUsername(username);
         UserStatus userStatus = updateUserStatusDto.userStatus();
 
-        if(userStatus == UserStatus.PUBLIC || userStatus == UserStatus.PRIVATE) {
+        if (userStatus == UserStatus.PUBLIC || userStatus == UserStatus.PRIVATE) {
             user.setUserStatus(userStatus);
             this.userRepository.save(user);
 
@@ -192,9 +202,21 @@ public class UserService {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, userInfoDto);
     }
 
+    public BaseResponse<?> getUserLoginInfo(String username) {
+        User user = this.userRepository.findUserByUsername(username).orElse(null);
+
+        if (user == null) {
+            return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
+        }
+
+        UserLoginInfoDto userLoginInfoDto = UserLoginInfoDto.of(user);
+
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, userLoginInfoDto);
+    }
+
     public BaseResponse<?> follow(FollowDto followDto, String username) {
         User user = this.userRepository.getUserByUsername(username);
-        Long followeeId = followDto.followeeId();
+        String followeeId = followDto.followeeId();
         User followee = this.userRepository.findById(followeeId).orElse(null);
 
         if (followee == null) {
@@ -211,7 +233,7 @@ public class UserService {
 
     public BaseResponse<?> unfollow(FollowDto followDto, String username) {
         User user = this.userRepository.getUserByUsername(username);
-        Long followeeId = followDto.followeeId();
+        String followeeId = followDto.followeeId();
 
         Follow follow = this.followRepository.findByFollowIdentity_FollowerIdAndFollowIdentity_FolloweeId(user.getId(), followeeId);
 
@@ -226,7 +248,7 @@ public class UserService {
 
     public BaseResponse<?> block(BlockDto blockDto, String username) {
         User user = this.userRepository.getUserByUsername(username);
-        Long blockeeId = blockDto.blockeeId();
+        String blockeeId = blockDto.blockeeId();
         User blockee = this.userRepository.findById(blockeeId).orElse(null);
 
         if (blockee == null) {
@@ -243,7 +265,7 @@ public class UserService {
 
     public BaseResponse<?> unblock(BlockDto blockDto, String username) {
         User user = this.userRepository.getUserByUsername(username);
-        Long blockeeId = blockDto.blockeeId();
+        String blockeeId = blockDto.blockeeId();
 
         Block block = this.blockRepository.findBlockByBlockIdentity_BlockerIdAndBlockIdentity_BlockeeId(user.getId(), blockeeId);
 

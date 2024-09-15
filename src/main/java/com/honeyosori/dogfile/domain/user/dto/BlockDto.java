@@ -2,5 +2,5 @@ package com.honeyosori.dogfile.domain.user.dto;
 
 import jakarta.validation.constraints.NotNull;
 
-public record BlockDto(@NotNull Long blockeeId) {
+public record BlockDto(@NotNull String blockeeId) {
 }

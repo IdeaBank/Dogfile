@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 public interface BlockRepository extends JpaRepository<Block, BlockIdentity> {
-    Block findBlockByBlockIdentity_BlockerIdAndBlockIdentity_BlockeeId(Long blockerId, Long blockeeId);
-    List<Block> getBlocksByBlockIdentityBlockeeId(Long blockeeId);
-    List<Block> getBlocksByBlockIdentityBlockerId(Long blockerId);
+    Block findBlockByBlockIdentity_BlockerIdAndBlockIdentity_BlockeeId(String blockerId, String blockeeId);
+    List<Block> getBlocksByBlockIdentityBlockeeId(String blockeeId);
+    List<Block> getBlocksByBlockIdentityBlockerId(String blockerId);
 }
