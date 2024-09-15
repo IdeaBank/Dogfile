@@ -1,8 +1,8 @@
 package com.honeyosori.dogfile.domain.user.controller;
 
 import com.honeyosori.dogfile.domain.user.dto.*;
+import com.honeyosori.dogfile.domain.user.entity.User;
 import com.honeyosori.dogfile.domain.user.service.UserService;
-import com.honeyosori.dogfile.global.constant.Role;
 import com.honeyosori.dogfile.global.response.BaseResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,7 +90,7 @@ public class UserController {
     }
 
     @GetMapping("/info")
-    public ResponseEntity<?> getUserInfo(@RequestHeader("X-USERNAME") String username, @RequestHeader("X-ROLE") Role role) {
+    public ResponseEntity<?> getUserInfo(@RequestHeader("X-USERNAME") String username) {
         return BaseResponse.getResponseEntity(this.userService.getUserInfo(username));
     }
 

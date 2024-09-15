@@ -1,8 +1,6 @@
 package com.honeyosori.dogfile.domain.user.dto;
 
 import com.honeyosori.dogfile.domain.user.entity.User;
-import com.honeyosori.dogfile.global.constant.Role;
-import com.honeyosori.dogfile.global.constant.UserStatus;
 
 import java.sql.Date;
 

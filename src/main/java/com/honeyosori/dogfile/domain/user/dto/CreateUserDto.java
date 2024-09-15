@@ -2,8 +2,7 @@ package com.honeyosori.dogfile.domain.user.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.honeyosori.dogfile.domain.user.entity.User;
-import com.honeyosori.dogfile.global.constant.Role;
-import com.honeyosori.dogfile.global.constant.UserStatus;
+import com.honeyosori.dogfile.domain.user.entity.User.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;

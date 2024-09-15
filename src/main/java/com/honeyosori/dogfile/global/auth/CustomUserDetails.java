@@ -1,10 +1,8 @@
 package com.honeyosori.dogfile.global.auth;
 
 import com.honeyosori.dogfile.domain.user.entity.User;
+import com.honeyosori.dogfile.domain.user.entity.User.UserStatus;
 import com.honeyosori.dogfile.domain.user.repository.UserRepository;
-import com.honeyosori.dogfile.global.constant.UserStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

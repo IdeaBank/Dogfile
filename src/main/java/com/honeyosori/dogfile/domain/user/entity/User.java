@@ -2,8 +2,6 @@ package com.honeyosori.dogfile.domain.user.entity;
 
 import com.honeyosori.dogfile.domain.badge.entity.OwnBadge;
 import com.honeyosori.dogfile.domain.dog.entity.Dog;
-import com.honeyosori.dogfile.global.constant.Role;
-import com.honeyosori.dogfile.global.constant.UserStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -96,5 +94,13 @@ public class User {
         this.birthday = birthday;
         this.phoneNumber = phoneNumber;
         this.email = email;
+    }
+
+    public enum Role {
+        GUEST, USER, ADMIN
+    }
+
+    public enum UserStatus {
+        PUBLIC, PRIVATE, WITHDRAW_REQUESTED, WITHDRAW
     }
 }
