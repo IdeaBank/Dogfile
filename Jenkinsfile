@@ -68,7 +68,7 @@ spec:
                 }
                 container('kaniko') {
                     sh "/kaniko/executor --verbosity debug --insecure --skip-tls-verify --dockerfile=./Dockerfile \
-                    --context=dir:///home/jenkins/agent/workspace/dogfile/dogfile-deploy \
+                    --context=dir:///home/jenkins/agent/workspace/${params.application_name}/${params.application_name}-deploy \
                     --destination=${env.DOCKER_USERNAME}/${params.image_name}:${NEW_TAG}"
                     // --destination=${env.NEXUS_URL}/${params.image_name}:latest" tls 해결되면 반영
                 }
