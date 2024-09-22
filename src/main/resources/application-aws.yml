@@ -1,6 +1,11 @@
 cloud:
   aws:
+    credentials:
+      accessKey: "${AWS_ACCESS_KEY}"
+      secretKey: "${AWS_SECRET_KEY}"
     s3:
       bucket: honeybadgerdogfile
+    region:
+      static: us-east-2
     stack:
       auto: false
