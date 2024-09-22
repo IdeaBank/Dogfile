@@ -5,6 +5,7 @@ import com.honeyosori.dogfile.domain.upload.factory.DependencyFactory;
 import com.honeyosori.dogfile.global.constant.AwsConstant;
 import com.honeyosori.dogfile.global.response.BaseResponse;
 import com.honeyosori.dogfile.global.response.BaseResponseStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -26,17 +27,11 @@ import java.util.UUID;
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
 @Service
+@RequiredArgsConstructor
 public class UploadService {
+    @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
     private S3Client s3Client;
-
-    public UploadService(
-            @Value("${cloud.aws.s3.bucket}") String bucketName) {
-        this.s3Client = DependencyFactory.s3Client();
-        this.bucketName = bucketName;
-
-        createBucket(s3Client, this.bucketName);
-    }
 
     public ResponseEntity<?> sendRequest(UploadDto uploadDto) throws Exception {
         MultipartFile multipartFile = uploadDto.file();

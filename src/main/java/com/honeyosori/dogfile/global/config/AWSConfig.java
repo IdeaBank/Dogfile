@@ -2,8 +2,10 @@ package com.honeyosori.dogfile.global.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 
@@ -21,22 +23,20 @@ public class AWSConfig {
     @Bean
     public S3Client s3Client() {
         return S3Client.builder()
-                .credentialsProvider(this::awsCredentials)
+                .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
                 .region(Region.of(region))
                 .build();
     }
 
-    private AwsCredentials awsCredentials() {
+    public AwsCredentials awsCredentials() {
         return new AwsCredentials() {
             @Override
             public String accessKeyId() {
-                System.out.println("## " + accessKey);
                 return accessKey;
             }
 
             @Override
             public String secretAccessKey() {
-                System.out.println("## " + accessSecret);
                 return accessSecret;
             }
         };

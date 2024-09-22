@@ -1,13 +1,23 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
+    url: "${SPRING_DATASOURCE_URL}"
+    username: "${SPRING_DATASOURCE_USERNAME}"
+    password: "${SPRING_DATASOURCE_PASSWORD}"
+    hikari:
+      allow-pool-suspension: true
   jpa:
-    database: mysql
-    database-platform: org.hibernate.dialect.MySQLDialect
-    show-sql: true
-    open-in-view: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: "${SPRING_JPA_HIBERNATE_DDL_AUTO}"
+    show-sql: true
     properties:
       hibernate:
         format_sql: true
+        boot:
+          allow_jdbc_metadata_access: false
+    database: mysql
+    database-platform: org.hibernate.dialect.MySQLDialect
+    open-in-view: false
+  sql:
+    init:
+      mode: never
