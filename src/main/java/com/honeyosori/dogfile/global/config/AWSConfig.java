@@ -22,6 +22,7 @@ public class AWSConfig {
 
     @Bean
     public S3Client s3Client() {
+
         return S3Client.builder()
                 .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
                 .region(Region.of(region))

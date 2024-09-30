@@ -5,6 +5,5 @@ spring:
     include:
       - aws
       - mysql
-      - credentials
       - jwt
       - nginx

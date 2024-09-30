@@ -24,8 +24,10 @@ import com.honeyosori.dogfile.global.response.BaseResponse;
 import com.honeyosori.dogfile.global.response.BaseResponseStatus;
 import com.honeyosori.dogfile.global.utility.JwtUtility;
 import jakarta.transaction.Transactional;
+import org.apache.http.entity.ContentType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -82,10 +84,15 @@ public class UserService {
                 .build();
 
         ObjectMapper objectMapper = new ObjectMapper();
+
         try {
             String jsonString = objectMapper.writeValueAsString(createUserDto);
+
             WebClient.ResponseSpec responseSpec = webClient.post()
                     .uri("/api/v1/dogus/user/register")
+                    .headers(httpHeaders -> {
+                        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+                    })
                     .body(BodyInserters.fromValue(jsonString))
                     .retrieve();
             String result = responseSpec.bodyToMono(String.class).block();
