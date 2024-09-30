@@ -1,5 +1,8 @@
 package com.honeyosori.dogfile.domain.user.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.honeyosori.dogfile.domain.badge.entity.Badge;
 import com.honeyosori.dogfile.domain.badge.entity.OwnBadge;
 import com.honeyosori.dogfile.domain.badge.repository.BadgeRepository;
@@ -16,6 +19,7 @@ import com.honeyosori.dogfile.domain.user.repository.BlockRepository;
 import com.honeyosori.dogfile.domain.user.repository.FollowRepository;
 import com.honeyosori.dogfile.domain.user.repository.UserRepository;
 import com.honeyosori.dogfile.domain.user.repository.WithdrawWaitingRepository;
+import com.honeyosori.dogfile.global.constant.DogUrl;
 import com.honeyosori.dogfile.global.response.BaseResponse;
 import com.honeyosori.dogfile.global.response.BaseResponseStatus;
 import com.honeyosori.dogfile.global.utility.JwtUtility;
@@ -25,9 +29,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.BodyInserter;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.net.HttpCookie;
 import java.util.List;
+import java.util.Map;
 
 @Transactional
 @Service
@@ -67,6 +76,25 @@ public class UserService {
         newUser.setPassword(encoder.encode(newUser.getPassword()));
 
         this.userRepository.save(newUser);
+
+        WebClient webClient = WebClient.builder()
+                .baseUrl(DogUrl.DOGUS.getUrl())
+                .build();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            String jsonString = objectMapper.writeValueAsString(createUserDto);
+            WebClient.ResponseSpec responseSpec = webClient.post()
+                    .uri("/api/v1/dogus/user/register")
+                    .body(BodyInserters.fromValue(jsonString))
+                    .retrieve();
+            String result = responseSpec.bodyToMono(String.class).block();
+
+            System.out.println(result);
+
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
 
         return new BaseResponse<>(BaseResponseStatus.CREATED, createUserDto);
     }

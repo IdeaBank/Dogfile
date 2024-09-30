@@ -36,6 +36,11 @@ public class User {
 
     @Getter
     @Setter
+    @Column
+    private GenderType gender;
+
+    @Getter
+    @Setter
     @Column(name = "profile_image_url")
     private String profileImageUrl;
 
@@ -86,7 +91,7 @@ public class User {
     @OneToMany(targetEntity = Follow.class, mappedBy = "followIdentity.followee")
     private List<User> followeeList;
 
-    public User(String username, String realName, String password, String profileImageUrl, Date birthday, String phoneNumber, String email) {
+    public User(String username, String realName, String password, String profileImageUrl, Date birthday, String phoneNumber, String address, String email, GenderType gender) {
         this.username = username;
         this.realName = realName;
         this.password = password;
@@ -94,6 +99,7 @@ public class User {
         this.birthday = birthday;
         this.phoneNumber = phoneNumber;
         this.email = email;
+        this.gender = gender;
     }
 
     public enum Role {
@@ -102,5 +108,9 @@ public class User {
 
     public enum UserStatus {
         PUBLIC, PRIVATE, WITHDRAW_REQUESTED, WITHDRAW
+    }
+
+    public enum GenderType {
+        MALE, FEMALE
     }
 }
