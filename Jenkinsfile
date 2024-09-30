@@ -29,7 +29,7 @@ spec:
         string(name : 'gitlab_link', defaultValue : 'gitlab.211-34-229-165.nip.io/honeybadger/dogfile/dogfile-spring', description : 'gitlab link')
         string(name : 'helm_chart', defaultValue : 'gitlab.211-34-229-165.nip.io/honeybadger/devops/dogfile-helm-chart', description : 'helm chart')
         string(name : 'helm_chart_name', defaultValue : 'dogfile-helm-chart', description : 'helm chart name')
-        string(name : 'gitlab_branch', defaultValue : 'main', description : 'gitlab branch')
+        string(name : 'gitlab_branch', defaultValue : 'deploy', description : 'gitlab branch')
         string(name : 'image_name', defaultValue : 'dogfile', description : 'docker image name')
     }
 
@@ -68,7 +68,7 @@ spec:
                 }
                 container('kaniko') {
                     sh "/kaniko/executor --verbosity debug --insecure --skip-tls-verify --dockerfile=./Dockerfile \
-                    --context=dir:///home/jenkins/agent/workspace/dogfile/dogfile-deploy \
+                    --context=dir:///home/jenkins/agent/workspace/${params.application_name}/${params.application_name}-deploy \
                     --destination=${env.DOCKER_USERNAME}/${params.image_name}:${NEW_TAG}"
                     // --destination=${env.NEXUS_URL}/${params.image_name}:latest" tls 해결되면 반영
                 }
