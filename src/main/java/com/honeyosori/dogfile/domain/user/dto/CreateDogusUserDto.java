@@ -9,14 +9,12 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.sql.Date;
 
 public record CreateDogusUserDto(@NotNull String id,
-                                 @NotNull String username,
-                                 @NotNull String realName,
+                                 @NotNull @Email String email,
                                  @NotNull String password,
-                                 @NotNull String profileImageUrl,
+                                 @NotNull String realName,
+                                 @NotNull User.GenderType gender,
                                  @DateTimeFormat(pattern = "yyyy-MM-dd") @Past @NotNull Date birthday,
                                  @NotNull String phoneNumber,
                                  @NotNull String address,
-                                 @NotNull @Email String email,
-                                 @NotNull String preferCategory,
-                                 @NotNull User.GenderType gender) {
+                                 @NotNull String profileImageUrl) {
 }

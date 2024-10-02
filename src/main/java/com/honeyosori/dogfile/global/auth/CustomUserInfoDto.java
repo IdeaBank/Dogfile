@@ -7,13 +7,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Getter
 public class CustomUserInfoDto {
-    private String username;
+    private String email;
     private String password;
     private User.Role role;
     private User.UserStatus userStatus;
 
     public CustomUserInfoDto(User user) {
-        this.username = user.getUsername();
+        this.email = user.getEmail();
         this.password = user.getPassword();
         this.role = user.getRole();
         this.userStatus = user.getUserStatus();

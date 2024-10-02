@@ -30,72 +30,33 @@ public class UserController {
     }
 
     @PatchMapping
-    public ResponseEntity<?> updateUser(@RequestBody UpdateUserDto updateUserDto, @RequestHeader("X-USERNAME") String username) {
-        return BaseResponse.getResponseEntity(this.userService.updateUser(updateUserDto, username));
+    public ResponseEntity<?> updateUser(@RequestBody UpdateUserDto updateUserDto, @RequestHeader("X-EMAIL") String email) {
+        return BaseResponse.getResponseEntity(this.userService.updateUser(updateUserDto, email));
     }
 
     @PatchMapping("/status")
-    public ResponseEntity<?> updateUserStatus(@Valid @RequestBody UpdateUserStatusDto updateUserStatusDto, @RequestHeader("X-USERNAME") String username) {
-        return BaseResponse.getResponseEntity(this.userService.changeUserStatus(updateUserStatusDto, username));
+    public ResponseEntity<?> updateUserStatus(@Valid @RequestBody UpdateUserStatusDto updateUserStatusDto, @RequestHeader("X-EMAIL") String email) {
+        return BaseResponse.getResponseEntity(this.userService.changeUserStatus(updateUserStatusDto, email));
     }
 
     @DeleteMapping
-    public ResponseEntity<?> deleteUser(@RequestHeader("X-USERNAME") String username) {
-        return BaseResponse.getResponseEntity(this.userService.deleteUser(username));
-    }
-
-    @PostMapping("/follow")
-    public ResponseEntity<?> followUser(@Valid @RequestBody FollowDto followDto, @RequestHeader("X-USERNAME") String username) {
-        return BaseResponse.getResponseEntity(this.userService.follow(followDto, username));
-    }
-
-    @PostMapping("/block")
-    public ResponseEntity<?> blockUser(@Valid @RequestBody BlockDto blockDto, @RequestHeader("X-USERNAME") String username) {
-        return BaseResponse.getResponseEntity(this.userService.block(blockDto, username));
-    }
-
-    @PostMapping("/unfollow")
-    public ResponseEntity<?> unfollowUser(@Valid @RequestBody FollowDto followDto, @RequestHeader("X-USERNAME") String username) {
-        return BaseResponse.getResponseEntity(this.userService.unfollow(followDto, username));
-    }
-
-    @PostMapping("/unblock")
-    public ResponseEntity<?> unblockUser(@Valid @RequestBody BlockDto blockDto, @RequestHeader("X-USERNAME") String username) {
-        return BaseResponse.getResponseEntity(this.userService.unblock(blockDto, username));
-    }
-
-    @GetMapping("/follower")
-    public ResponseEntity<?> getFollowers(@RequestHeader("X-USERNAME") String username) {
-        return BaseResponse.getResponseEntity(this.userService.getFollowers(username));
-    }
-
-    @GetMapping("/followee")
-    public ResponseEntity<?> getFollowees(@RequestHeader("X-USERNAME") String username) {
-        return BaseResponse.getResponseEntity(this.userService.getFollowees(username));
-    }
-
-    @GetMapping("/blocker")
-    public ResponseEntity<?> getBlockers(@RequestHeader("X-USERNAME") String username) {
-        return BaseResponse.getResponseEntity(this.userService.getBlockers(username));
-    }
-
-    @GetMapping("/blockee")
-    public ResponseEntity<?> getBlockees(@RequestHeader("X-USERNAME") String username) {
-        return BaseResponse.getResponseEntity(this.userService.getBlockees(username));
-    }
-
-    @PutMapping("/add-badge")
-    public ResponseEntity<?> addBadge(@Valid @RequestBody AddBadgeDto addBadgeDto, @RequestHeader("X-USERNAME") String username) {
-        return BaseResponse.getResponseEntity(this.userService.addBadge(addBadgeDto, username));
+    public ResponseEntity<?> deleteUser(@RequestHeader("X-EMAIL") String email) {
+        return BaseResponse.getResponseEntity(this.userService.deleteUser(email));
     }
 
     @GetMapping("/info")
-    public ResponseEntity<?> getUserInfo(@RequestHeader("X-USERNAME") String username) {
-        return BaseResponse.getResponseEntity(this.userService.getUserInfo(username));
+    public ResponseEntity<?> getUserInfo(@RequestHeader("X-EMAIL") String email) {
+        return BaseResponse.getResponseEntity(this.userService.getUserInfo(email));
     }
 
     @GetMapping("/login-info")
-    public ResponseEntity<?> getLoginInfo(@RequestHeader("X-USERNAME") String username) {
-        return BaseResponse.getResponseEntity(this.userService.getUserLoginInfo(username));
+    public ResponseEntity<?> getLoginInfo(@RequestHeader("X-EMAIL") String email) {
+        return BaseResponse.getResponseEntity(this.userService.getUserLoginInfo(email));
+    }
+
+    @GetMapping("/delete-chat")
+    public ResponseEntity<?> delete(@RequestHeader("X-USER-ID") String userId) {
+        this.userService.sendWithdrawRequestToDogchat(userId);
+        return ResponseEntity.ok().build();
     }
 }

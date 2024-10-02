@@ -9,7 +9,5 @@ import java.sql.Date;
 public record UpdateUserDto(String password,
                             String profileImageUrl,
                             @DateTimeFormat(pattern = "yyyy-MM-dd") @Past Date birthday,
-                            String phoneNumber,
-                            String email,
-                            UserStatus userStatus) {
+                            String phoneNumber) {
 }

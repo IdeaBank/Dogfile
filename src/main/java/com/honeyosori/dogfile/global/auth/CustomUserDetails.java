@@ -13,11 +13,9 @@ import java.util.List;
 
 public class CustomUserDetails implements UserDetails {
     private final CustomUserInfoDto customUserInfoDto;
-    private final UserRepository userRepository;
 
     public CustomUserDetails(User user, UserRepository userRepository) {
         this.customUserInfoDto = new CustomUserInfoDto(user);
-        this.userRepository = userRepository;
     }
 
     @Override
@@ -37,7 +35,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return customUserInfoDto.getUsername();
+        return customUserInfoDto.getEmail();
     }
 
 
@@ -48,7 +46,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return customUserInfoDto.getUserStatus() != UserStatus.WITHDRAW;
+        return customUserInfoDto.getUserStatus() != UserStatus.WITHDRAWN;
     }
 
     @Override

@@ -4,16 +4,13 @@ import com.honeyosori.dogfile.domain.user.entity.User;
 
 import java.sql.Date;
 
-public record UserInfoDto(String username,
-                          String name,
-                          String password,
+public record UserInfoDto(String email,
+                          String realName,
                           String profileImageUrl,
                           Date birthday,
-                          String phoneNumber,
-                          String email) {
+                          String phoneNumber) {
     public static UserInfoDto of(User user) {
-        return new UserInfoDto(user.getUsername(), user.getRealName(),
-                user.getPassword(), user.getProfileImageUrl(), user.getBirthday(),
-                user.getPhoneNumber(), user.getEmail());
+        return new UserInfoDto(user.getEmail(), user.getRealName(), user.getProfileImageUrl(),
+                user.getBirthday(), user.getPhoneNumber());
     }
 }

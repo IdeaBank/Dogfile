@@ -49,18 +49,18 @@ public class JwtUtility {
         return Jwts.parser().verifyWith((SecretKey) key).build().parseSignedClaims(token).getPayload();
     }
 
-    public Map<String, Object> createClaims(String username, String password) {
+    public Map<String, Object> createClaims(String email, String password) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("username", username);
+        claims.put("email", email);
         claims.put("password", password);
 
         return claims;
     }
 
-    public String generateAccessToken(String username, String password) {
+    public String generateAccessToken(String email, String password) {
         Date now = new Date();
 
-        return Jwts.builder().claims(createClaims(username, password)).issuedAt(now).expiration(new Date(now.getTime() + jwtExpiration)).signWith(key).compact();
+        return Jwts.builder().claims(createClaims(email, password)).issuedAt(now).expiration(new Date(now.getTime() + jwtExpiration)).signWith(key).compact();
     }
 
     public BaseResponseStatus validateToken(String token) {

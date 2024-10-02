@@ -1,7 +1,5 @@
 package com.honeyosori.dogfile.domain.user.entity;
 
-import com.honeyosori.dogfile.domain.badge.entity.OwnBadge;
-import com.honeyosori.dogfile.domain.dog.entity.Dog;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -11,7 +9,6 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.sql.Date;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -22,8 +19,14 @@ public class User {
     private String id;
 
     @Getter
+    @Setter
     @Column
-    private String username;
+    private String email;
+
+    @Getter
+    @Setter
+    @Column
+    private String password;
 
     @Getter
     @Column
@@ -32,17 +35,8 @@ public class User {
     @Getter
     @Setter
     @Column
-    private String password;
-
-    @Getter
-    @Setter
-    @Column
+    @Enumerated(EnumType.STRING)
     private GenderType gender;
-
-    @Getter
-    @Setter
-    @Column(name = "profile_image_url")
-    private String profileImageUrl;
 
     @Getter
     @Setter
@@ -57,49 +51,44 @@ public class User {
     @Getter
     @Setter
     @Column
-    private String email;
+    private String address;
+
+    @Getter
+    @Setter
+    @Column(name = "profile_image_url")
+    private String profileImageUrl;
 
     @Getter
     @Setter
     @Column
+    @Enumerated(EnumType.STRING)
     private Role role;
 
     @Getter
     @Setter
-    @Column(name = "user_status")
+    @Column
+    @Enumerated(EnumType.STRING)
     private UserStatus userStatus;
 
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "owner")
-    private List<Dog> dogs;
-
-    @OneToMany(mappedBy = "user")
-    private List<OwnBadge> ownBadgeList;
-
-    @OneToMany(targetEntity = Block.class, mappedBy = "blockIdentity.blocker")
-    private List<User> blockerList;
-
-    @OneToMany(targetEntity = Block.class, mappedBy = "blockIdentity.blockee")
-    private List<User> blockeeList;
-
-    @OneToMany(targetEntity = Follow.class, mappedBy = "followIdentity.follower")
-    private List<User> followerList;
-
-    @OneToMany(targetEntity = Follow.class, mappedBy = "followIdentity.followee")
-    private List<User> followeeList;
-
-    public User(String username, String realName, String password, String profileImageUrl, Date birthday, String phoneNumber, String address, String email, GenderType gender) {
-        this.username = username;
-        this.realName = realName;
+    public User(String email, String password, String realName, GenderType gender, Date birthday, String phoneNumber, String address, String profileImageUrl) {
+        this.email = email;
         this.password = password;
-        this.profileImageUrl = profileImageUrl;
+        this.realName = realName;
+        this.gender = gender;
         this.birthday = birthday;
         this.phoneNumber = phoneNumber;
-        this.email = email;
-        this.gender = gender;
+        this.address = address;
+        this.profileImageUrl = profileImageUrl;
+        this.role = Role.USER;
+        this.userStatus = UserStatus.PRIVATE;
+    }
+
+    public enum GenderType {
+        MALE, FEMALE
     }
 
     public enum Role {
@@ -107,10 +96,6 @@ public class User {
     }
 
     public enum UserStatus {
-        PUBLIC, PRIVATE, WITHDRAW_REQUESTED, WITHDRAW
-    }
-
-    public enum GenderType {
-        MALE, FEMALE
+        PUBLIC, PRIVATE, WITHDRAW_REQUESTED, WITHDRAWN
     }
 }

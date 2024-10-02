@@ -35,9 +35,9 @@ public class JwtAuthFilter extends OncePerRequestFilter { // OncePerRequestFilte
         BaseResponseStatus jwtStatus = jwtUtility.validateToken(token);
 
         if (jwtStatus == BaseResponseStatus.SUCCESS) {
-            String username = jwtUtility.getUserInfoFromToken(token).get("username").toString();
+            String email = jwtUtility.getUserInfoFromToken(token).get("email").toString();
             String password = jwtUtility.getUserInfoFromToken(token).get("password").toString();
-            UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
+            UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
 
             if (!userDetails.getPassword().equals(password)) {
                 BaseResponse<?> baseResponse = new BaseResponse<>(BaseResponseStatus.EXPIRED_JWT_TOKEN, null);
