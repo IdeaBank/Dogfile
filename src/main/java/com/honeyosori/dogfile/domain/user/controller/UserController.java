@@ -53,10 +53,4 @@ public class UserController {
     public ResponseEntity<?> getLoginInfo(@RequestHeader("X-EMAIL") String email) {
         return BaseResponse.getResponseEntity(this.userService.getUserLoginInfo(email));
     }
-
-    @GetMapping("/delete-chat")
-    public ResponseEntity<?> delete(@RequestHeader("X-USER-ID") String userId) {
-        this.userService.sendWithdrawRequestToDogchat(userId);
-        return ResponseEntity.ok().build();
-    }
 }

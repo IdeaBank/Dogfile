@@ -40,7 +40,7 @@ public class UserService {
         this.jwtUtility = jwtUtility;
     }
 
-    public void sendWithdrawRequestToDogchat(String userId) {
+    private void sendWithdrawRequestToDogchat(String userId) {
         WebClient webClient = WebClient.builder()
                 .baseUrl(DogUrl.DOGCHAT.getUrl())
                 .build();

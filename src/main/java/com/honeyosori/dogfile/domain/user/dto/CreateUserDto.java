@@ -16,7 +16,8 @@ public record CreateUserDto(@NotNull @Email String email,
                             @NotNull String phoneNumber,
                             @NotNull String address,
                             @NotNull String profileImageUrl,
-                            @NotNull String preferCategory) {
+                            String preferCategory,
+                            String username) {
     public User toUser() {
         return new User(email, password, realName, gender, birthday, phoneNumber, address, profileImageUrl);
     }
