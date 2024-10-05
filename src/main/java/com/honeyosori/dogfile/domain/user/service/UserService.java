@@ -67,7 +67,7 @@ public class UserService {
             String jsonString = objectMapper.writeValueAsString(createUserDto);
 
             WebClient.ResponseSpec responseSpec = webClient.post()
-                    .uri("/api/v1/dogus/user/register")
+                    .uri("/api/v1/user/register")
                     .headers(httpHeaders -> {
                         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
                     })
@@ -144,6 +144,10 @@ public class UserService {
             user.setProfileImageUrl(updateUserDto.profileImageUrl());
         }
 
+        if (updateUserDto.birthday() != null) {
+            user.setBirthday(updateUserDto.birthday());
+        }
+
         if (updateUserDto.phoneNumber() != null) {
             user.setPhoneNumber(updateUserDto.phoneNumber());
         }
@@ -202,7 +206,16 @@ public class UserService {
         return BaseResponse.getResponseEntity(new BaseResponse<>(BaseResponseStatus.WRONG_PASSWORD, null));
     }
 
-    public BaseResponse<?> deleteUser(String email) {
+    public void deleteUser(String email) {
+        User user = this.userRepository.getUserByEmail(email);
+
+        user.resetUser();
+        user.setUserStatus(UserStatus.WITHDRAWN);
+
+        this.userRepository.save(user);
+    }
+
+    public BaseResponse<?> processWithdrawRequest(String email) {
         User user = this.userRepository.getUserByEmail(email);
 
         if (this.withdrawWaitingRepository.existsByUserId(user.getId())) {

@@ -87,6 +87,18 @@ public class User {
         this.userStatus = UserStatus.PRIVATE;
     }
 
+    public void resetUser() {
+        this.email = null;
+        this.password = null;
+        this.realName = null;
+        this.gender = null;
+        this.birthday = null;
+        this.phoneNumber = null;
+        this.address = null;
+        this.profileImageUrl = null;
+        this.role = null;
+    }
+
     public enum GenderType {
         MALE, FEMALE
     }

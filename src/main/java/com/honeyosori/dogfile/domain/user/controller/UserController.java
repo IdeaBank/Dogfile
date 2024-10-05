@@ -1,7 +1,6 @@
 package com.honeyosori.dogfile.domain.user.controller;
 
 import com.honeyosori.dogfile.domain.user.dto.*;
-import com.honeyosori.dogfile.domain.user.entity.User;
 import com.honeyosori.dogfile.domain.user.service.UserService;
 import com.honeyosori.dogfile.global.response.BaseResponse;
 import jakarta.validation.Valid;
@@ -41,7 +40,7 @@ public class UserController {
 
     @DeleteMapping
     public ResponseEntity<?> deleteUser(@RequestHeader("X-EMAIL") String email) {
-        return BaseResponse.getResponseEntity(this.userService.deleteUser(email));
+        return BaseResponse.getResponseEntity(this.userService.processWithdrawRequest(email));
     }
 
     @GetMapping("/info")
