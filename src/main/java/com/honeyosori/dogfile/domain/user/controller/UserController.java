@@ -3,6 +3,7 @@ package com.honeyosori.dogfile.domain.user.controller;
 import com.honeyosori.dogfile.domain.user.dto.*;
 import com.honeyosori.dogfile.domain.user.service.UserService;
 import com.honeyosori.dogfile.global.response.BaseResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -43,6 +44,7 @@ public class UserController {
         return BaseResponse.getResponseEntity(this.userService.processWithdrawRequest(email));
     }
 
+    // TODO: change to internal server only
     @GetMapping("/info")
     public ResponseEntity<?> getUserInfo(@RequestHeader("X-EMAIL") String email) {
         return BaseResponse.getResponseEntity(this.userService.getUserInfo(email));

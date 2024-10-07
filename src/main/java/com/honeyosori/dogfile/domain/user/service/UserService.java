@@ -114,6 +114,8 @@ public class UserService {
 
         this.userRepository.save(newUser);
 
+        
+
         try {
             sendRegisterRequestToDogus(createUserDto);
         } catch (Exception e) {

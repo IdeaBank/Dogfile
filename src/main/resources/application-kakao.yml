@@ -1,0 +1,5 @@
+oauth:
+  kakao:
+    api_key: ${KAKAO_CLIENT_ID}
+    code_redirect_uri: ${KAKAO_REDIRECT_CODE}
+    token_redirect_uri: ${KAKAO_REDIRECT_TOKEN}

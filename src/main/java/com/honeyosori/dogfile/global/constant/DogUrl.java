@@ -10,6 +10,7 @@ public enum DogUrl {
     DOGTING("http://dogting.dogting.svc.cluster.local:8080"),
     DOGCHAT("http://dogchat.210-178-40-108.nip.io"),
     PUSH("http://push.push.svc.cluster.local:8080"),
+    DOGGATE("http://doggate.210-178-40-108.nip.io")
     ;
 
     private String url;
