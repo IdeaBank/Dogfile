@@ -8,16 +8,12 @@ import com.honeyosori.dogfile.domain.oauth.component.KakaoTokenClient;
 import com.honeyosori.dogfile.domain.oauth.component.KakaoUserInformationClient;
 import com.honeyosori.dogfile.domain.oauth.dto.CreateKakaoAccountDto;
 import com.honeyosori.dogfile.domain.oauth.exception.OAuthException;
-import com.honeyosori.dogfile.domain.user.dto.CreateUserDto;
 import com.honeyosori.dogfile.domain.user.entity.User;
 import com.honeyosori.dogfile.domain.user.repository.UserRepository;
 import com.honeyosori.dogfile.global.constant.DogUrl;
 import com.honeyosori.dogfile.global.response.BaseResponse;
 import com.honeyosori.dogfile.global.response.BaseResponseStatus;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Past;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -27,15 +23,18 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.sql.Date;
 
 @Service
 public class KakaoOAuthService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    private final KakaoTokenClient kakaoTokenClient;
+    private final KakaoUserInformationClient kakaoUserInformationClient;
 
-    public KakaoOAuthService(UserRepository userRepository) {
+    public KakaoOAuthService(UserRepository userRepository, KakaoTokenClient kakaoTokenClient, KakaoUserInformationClient client) {
         this.userRepository = userRepository;
+        this.kakaoTokenClient = kakaoTokenClient;
+        this.kakaoUserInformationClient = client;
     }
 
     private String getParameter(HttpServletRequest request, String parameterName) {
@@ -74,8 +73,6 @@ public class KakaoOAuthService {
     }
 
     private void requestAccessToken(String code) {
-        KakaoTokenClient kakaoTokenClient = new KakaoTokenClient();
-
         WebClient webClient = WebClient.builder()
                 .baseUrl("https://kauth.kakao.com").build();
 
@@ -110,8 +107,6 @@ public class KakaoOAuthService {
     }
 
     public void readUserInformation(String accessToken) {
-        KakaoUserInformationClient kakaoUserInformationClient = new KakaoUserInformationClient();
-
         WebClient webClient = WebClient.builder()
                 .baseUrl("https://kauth.kakao.com").build();
 
