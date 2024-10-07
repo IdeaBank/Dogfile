@@ -21,8 +21,4 @@ public record CreateUserDto(@NotNull @Email String email,
     public User toUser() {
         return new User(email, password, realName, gender, birthday, phoneNumber, address, profileImageUrl);
     }
-
-    public CreateDogusUserDto toCreateDogusUserDto(String id) {
-        return new CreateDogusUserDto(id, email, password, realName, gender, birthday, phoneNumber, address, profileImageUrl);
-    }
 }

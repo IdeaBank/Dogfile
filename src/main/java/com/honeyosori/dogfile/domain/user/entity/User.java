@@ -29,6 +29,7 @@ public class User {
     private String password;
 
     @Getter
+    @Setter
     @Column
     private String realName;
 
@@ -85,6 +86,10 @@ public class User {
         this.profileImageUrl = profileImageUrl;
         this.role = Role.USER;
         this.userStatus = UserStatus.PRIVATE;
+    }
+
+    public User(String email) {
+        this.email = email;
     }
 
     public void resetUser() {
