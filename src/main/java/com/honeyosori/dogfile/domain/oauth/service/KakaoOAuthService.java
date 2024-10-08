@@ -47,7 +47,7 @@ public class KakaoOAuthService {
     public ResponseEntity<?> authenticate(HttpServletRequest request) {
         System.out.println("finding code");
         String code = request.getParameter("code");
-        
+
         if(code == null) {
             System.out.println("CANNOT FIND CODE!!");
         }
@@ -64,6 +64,11 @@ public class KakaoOAuthService {
     private ResponseEntity<?> requestAccessToken(String code) {
         RestClient restClient = RestClient.builder()
                 .baseUrl(kakaoOAuthClient.getAuthUri()).build();
+
+        System.out.println(kakaoOAuthClient.getAuthUri());
+        System.out.println(kakaoOAuthClient.getGrantType());
+        System.out.println(kakaoOAuthClient.getClientId());
+        System.out.println(kakaoOAuthClient.getRedirectUri());
 
         MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
 
