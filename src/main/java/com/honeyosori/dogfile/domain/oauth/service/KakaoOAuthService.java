@@ -45,7 +45,12 @@ public class KakaoOAuthService {
     }
 
     public ResponseEntity<?> authenticate(HttpServletRequest request) {
+        System.out.println("finding code");
         String code = request.getParameter("code");
+        
+        if(code == null) {
+            System.out.println("CANNOT FIND CODE!!");
+        }
 
         System.out.println(code);
 
