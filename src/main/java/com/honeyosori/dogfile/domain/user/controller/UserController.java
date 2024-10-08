@@ -1,9 +1,11 @@
 package com.honeyosori.dogfile.domain.user.controller;
 
-import com.honeyosori.dogfile.domain.user.dto.*;
+import com.honeyosori.dogfile.domain.user.dto.CreateUserDto;
+import com.honeyosori.dogfile.domain.user.dto.LoginDto;
+import com.honeyosori.dogfile.domain.user.dto.UpdateUserDto;
+import com.honeyosori.dogfile.domain.user.dto.UpdateUserStatusDto;
 import com.honeyosori.dogfile.domain.user.service.UserService;
 import com.honeyosori.dogfile.global.response.BaseResponse;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

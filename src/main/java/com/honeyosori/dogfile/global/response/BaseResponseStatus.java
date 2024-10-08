@@ -32,6 +32,8 @@ public enum BaseResponseStatus {
 
     WRONG_PASSWORD(false, HttpStatus.UNAUTHORIZED.value(), "Invalid password"),
 
+    USER_EXISTS(false, HttpStatus.CONFLICT.value(), "User already exists"),
+
     USER_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "User not found"),
     BREED_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "Breed not found"),
     BADGE_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "Badge not found"),

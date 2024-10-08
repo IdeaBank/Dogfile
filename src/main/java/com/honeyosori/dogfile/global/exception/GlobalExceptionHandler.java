@@ -1,5 +1,6 @@
 package com.honeyosori.dogfile.global.exception;
 
+import com.honeyosori.dogfile.domain.oauth.exception.OAuthException;
 import com.honeyosori.dogfile.global.response.BaseResponse;
 import com.honeyosori.dogfile.global.response.BaseResponseStatus;
 import com.honeyosori.dogfile.global.response.BindingResultMessage;
@@ -11,9 +12,14 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import java.util.List;
 
 @ControllerAdvice
-public class BindingExceptionHandler {
+public class GlobalExceptionHandler {
+    @ExceptionHandler(OAuthException.class)
+    private ResponseEntity<?> handleOAuthException(OAuthException e) {
+        return BaseResponse.getResponseEntity(e.getStatus());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<?> methodValidException(MethodArgumentNotValidException e) {
+    private ResponseEntity<?> methodValidException(MethodArgumentNotValidException e) {
         List<String> errorMessage = e.getBindingResult().getFieldErrors().stream()
                 .map(BindingResultMessage::of).toList();
 

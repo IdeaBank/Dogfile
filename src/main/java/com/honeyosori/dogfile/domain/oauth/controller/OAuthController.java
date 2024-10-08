@@ -19,17 +19,12 @@ public class OAuthController {
         this.kakaoOAuthService = kakaoOAuthService;
     }
 
-    @GetMapping("/kakao_code")
-    public ResponseEntity<?> receiveKakaoCode(HttpServletRequest request) {
-        return this.kakaoOAuthService.receiveKakaoCode(request);
+    @GetMapping("/kakao/oauth")
+    public ResponseEntity<?> authenticate(HttpServletRequest request) {
+        return this.kakaoOAuthService.authenticate(request);
     }
 
-    @GetMapping("/kakao_access_token")
-    public ResponseEntity<?> receiveKakaoAccessToken(HttpServletRequest request) {
-        return this.kakaoOAuthService.receiveAccessToken(request);
-    }
-
-    @PostMapping("/kakao_register")
+    @PostMapping("/kakao/register")
     public BaseResponse<?> registerKakaoAccount(@RequestHeader("X-EMAIL") String email, @Valid @RequestBody CreateKakaoAccountDto createKakaoAccountDto) {
         return this.kakaoOAuthService.registerNewAccount(email, createKakaoAccountDto);
     }

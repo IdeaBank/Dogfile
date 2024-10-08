@@ -33,6 +33,12 @@ public class BaseResponse<T> {
         return new ResponseEntity<>(baseResponse, HttpStatusCode.valueOf(baseResponse.code));
     }
 
+    public static ResponseEntity<?> getResponseEntity(BaseResponseStatus status) {
+        BaseResponse<?> baseResponse = new BaseResponse<>(status, null);
+
+        return getResponseEntity(baseResponse);
+    }
+
     @Override
     public String toString() {
         ObjectMapper mapper = new ObjectMapper();

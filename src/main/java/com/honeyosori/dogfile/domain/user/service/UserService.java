@@ -178,15 +178,15 @@ public class UserService {
         User user = this.userRepository.findUserByEmail(email).orElse(null);
 
         if (user == null) {
-            return BaseResponse.getResponseEntity(new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null));
+            return BaseResponse.getResponseEntity(BaseResponseStatus.USER_NOT_FOUND);
         }
 
         if (user.getUserStatus() == UserStatus.WITHDRAW_REQUESTED) {
-            return BaseResponse.getResponseEntity(new BaseResponse<>(BaseResponseStatus.WITHDRAW_REQUESTED, null));
+            return BaseResponse.getResponseEntity(BaseResponseStatus.WITHDRAW_REQUESTED);
         }
 
         if (user.getUserStatus() == UserStatus.WITHDRAWN) {
-            return BaseResponse.getResponseEntity(new BaseResponse<>(BaseResponseStatus.WITHDRAWN, null));
+            return BaseResponse.getResponseEntity(BaseResponseStatus.WITHDRAWN);
         }
 
         if (encoder.matches(password, user.getPassword())) {
@@ -203,7 +203,7 @@ public class UserService {
             return ResponseEntity.ok().headers(responseHeaders).build();
         }
 
-        return BaseResponse.getResponseEntity(new BaseResponse<>(BaseResponseStatus.WRONG_PASSWORD, null));
+        return BaseResponse.getResponseEntity(BaseResponseStatus.WRONG_PASSWORD);
     }
 
     public void deleteUser(String email) {

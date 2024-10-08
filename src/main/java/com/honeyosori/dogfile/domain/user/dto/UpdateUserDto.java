@@ -1,6 +1,5 @@
 package com.honeyosori.dogfile.domain.user.dto;
 
-import com.honeyosori.dogfile.domain.user.entity.User.UserStatus;
 import jakarta.validation.constraints.Past;
 import org.springframework.format.annotation.DateTimeFormat;
 

@@ -1,8 +1,6 @@
 package com.honeyosori.dogfile.domain.oauth.dto;
 
 import com.honeyosori.dogfile.domain.user.entity.User;
-import jakarta.annotation.Nonnull;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
 import org.springframework.format.annotation.DateTimeFormat;
