@@ -47,6 +47,8 @@ public class KakaoOAuthService {
     public ResponseEntity<?> authenticate(HttpServletRequest request) {
         String code = request.getParameter("code");
 
+        System.out.println(code);
+
         if (code == null) {
             throw new OAuthException(BaseResponseStatus.REJECTED);
         }
@@ -64,6 +66,8 @@ public class KakaoOAuthService {
         requestBody.add("client_id", kakaoOAuthClient.getClientId());
         requestBody.add("code", code);
         requestBody.add("redirect_uri", kakaoOAuthClient.getRedirectUri() + "/dogfile/v1/oauth/kakao/oauth");
+
+        System.out.println("Trying to receive access token");
 
         RestClient.ResponseSpec responseSpec = restClient.post()
                 .uri("/oauth/token")
