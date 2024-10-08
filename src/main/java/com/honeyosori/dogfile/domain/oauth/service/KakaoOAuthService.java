@@ -86,10 +86,12 @@ public class KakaoOAuthService {
                 .body(requestBody)
                 .retrieve();
 
-        String tokenResponse = responseSpec.onStatus(HttpStatusCode::isError, (request, response) -> {
+        String tokenResponse = responseSpec.body(String.class);
+        /*
+                onStatus(HttpStatusCode::isError, (request, response) -> {
             throw new OAuthException(BaseResponseStatus.REJECTED);
         }).body(String.class);
-
+*/
         JsonObject jsonObject = JsonParser.parseString(tokenResponse).getAsJsonObject();
 
         String accessToken = jsonObject.get("access_token").getAsString();
