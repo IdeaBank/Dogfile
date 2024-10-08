@@ -197,6 +197,9 @@ public class KakaoOAuthService {
         user.setPhoneNumber(createKakaoAccountDto.phoneNumber());
         user.setAddress(createKakaoAccountDto.address());
         user.setProfileImageUrl(createKakaoAccountDto.profileImageUrl());
+        user.setUserStatus(User.UserStatus.PUBLIC);
+        user.setRole(User.Role.USER);
+
 
         this.userRepository.save(user);
 
