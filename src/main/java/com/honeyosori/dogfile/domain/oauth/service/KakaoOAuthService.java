@@ -63,7 +63,7 @@ public class KakaoOAuthService {
         requestBody.add("grant_type", kakaoOAuthClient.getGrantType());
         requestBody.add("client_id", kakaoOAuthClient.getClientId());
         requestBody.add("code", code);
-        requestBody.add("redirect_uri", kakaoOAuthClient.getRedirectUri() + "/v1/oauth/kakao/oauth");
+        requestBody.add("redirect_uri", kakaoOAuthClient.getRedirectUri() + "/dogfile/v1/oauth/kakao/oauth");
 
         RestClient.ResponseSpec responseSpec = restClient.post()
                 .uri("/oauth/token")
