@@ -144,7 +144,7 @@ public class KakaoOAuthService {
 
             RestClient.ResponseSpec responseSpec = restClient.post().uri(DogUrl.DOGUS_REGISTER).headers(httpHeaders -> {
                 httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-            }).body(BodyInserters.fromValue(dogusAccountInformation)).retrieve();
+            }).body(dogusAccountInformation).retrieve();
 
             String result = responseSpec.body(String.class);
 

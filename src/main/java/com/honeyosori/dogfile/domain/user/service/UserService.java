@@ -69,13 +69,14 @@ public class UserService {
 
         try {
             String jsonString = objectMapper.writeValueAsString(createUserDto);
+            System.out.println(jsonString);
 
             RestClient.ResponseSpec responseSpec = restClient.post()
                     .uri(DogUrl.DOGUS_REGISTER)
                     .headers(httpHeaders -> {
                         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
                     })
-                    .body(BodyInserters.fromValue(jsonString))
+                    .body(jsonString)
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, (r, e) -> {
                         throw new OAuthException(BaseResponseStatus.INVALID_JWT_TOKEN);
