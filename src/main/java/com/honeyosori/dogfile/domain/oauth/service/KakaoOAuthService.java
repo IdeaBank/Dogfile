@@ -62,13 +62,10 @@ public class KakaoOAuthService {
                 .uri(KakaoUrl.GET_USER_INFORMATION)
                 .header(HttpHeaders.AUTHORIZATION, TokenType.BEARER + accessToken)
                 .retrieve()
-                .body(KakaoUserInformation.class);
-
-        /*.onStatus(HttpStatusCode::isError, (request, response) -> {
+                .onStatus(HttpStatusCode::isError, (request, response) -> {
                     throw new OAuthException(BaseResponseStatus.REJECTED);
                 })
-
-         */
+                .body(KakaoUserInformation.class);
 
         if (kakaoUserInformation == null || kakaoUserInformation.getKakaoAccount() == null) {
             throw new OAuthException(BaseResponseStatus.INTERNAL_SERVER_ERROR);
@@ -97,12 +94,10 @@ public class KakaoOAuthService {
                 .acceptCharset(StandardCharsets.UTF_8)
                 .body(requestBody)
                 .retrieve()
-                .body(KakaoTokenResponse.class);
-
-        /*.onStatus(HttpStatusCode::isError, (request, response) -> {
+                .onStatus(HttpStatusCode::isError, (request, response) -> {
                     throw new OAuthException(BaseResponseStatus.REJECTED);
                 })
-         */
+                .body(KakaoTokenResponse.class);
 
         if (tokenResponse == null) {
             throw new OAuthException(BaseResponseStatus.INTERNAL_SERVER_ERROR);

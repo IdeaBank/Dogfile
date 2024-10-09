@@ -76,16 +76,13 @@ public class UserService {
                         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
                     })
                     .body(BodyInserters.fromValue(jsonString))
-                    .retrieve();
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, (r, e) -> {
+                        throw new OAuthException(BaseResponseStatus.INVALID_JWT_TOKEN);
+                    });
 
             String result = responseSpec
                     .body(String.class);
-
-            /*
-            .onStatus(HttpStatusCode::is4xxClientError, (r, e) -> {
-                        throw new OAuthException(BaseResponseStatus.INVALID_JWT_TOKEN);
-                    })
-             */
 
         } catch (JsonProcessingException e) {
             e.printStackTrace();
