@@ -12,7 +12,6 @@ public class DogfileApplication {
 
     public static void main(String[] args) {
 
-        System.out.println("DOGGATE 시작");
         SpringApplication.run(DogfileApplication.class, args);
     }
 

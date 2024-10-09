@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 public class OAuthException extends RuntimeException {
-    private BaseResponseStatus status;
+    private final BaseResponseStatus status;
 
     public OAuthException(BaseResponseStatus status) {
         this.status = status;

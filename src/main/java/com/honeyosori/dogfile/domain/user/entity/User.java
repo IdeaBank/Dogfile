@@ -1,5 +1,6 @@
 package com.honeyosori.dogfile.domain.user.entity;
 
+import com.honeyosori.dogfile.domain.oauth.dto.CreateKakaoAccountDto;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -101,7 +102,19 @@ public class User {
         this.phoneNumber = null;
         this.address = null;
         this.profileImageUrl = null;
-        this.role = null;
+        this.role = Role.GUEST;
+    }
+
+    public void registerKakaoUser(CreateKakaoAccountDto createKakaoAccountDto) {
+        this.realName = createKakaoAccountDto.realName();
+        this.gender = createKakaoAccountDto.gender();
+        this.birthday = createKakaoAccountDto.birthday();
+        this.phoneNumber = createKakaoAccountDto.phoneNumber();
+        this.address = createKakaoAccountDto.address();
+        this.profileImageUrl = createKakaoAccountDto.profileImageUrl();
+
+        this.userStatus = User.UserStatus.PUBLIC;
+        this.role = User.Role.USER;
     }
 
     public enum GenderType {

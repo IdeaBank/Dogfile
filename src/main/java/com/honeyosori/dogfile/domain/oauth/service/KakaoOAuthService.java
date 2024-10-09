@@ -2,18 +2,22 @@ package com.honeyosori.dogfile.domain.oauth.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.honeyosori.dogfile.domain.oauth.component.KakaoOAuthClient;
+import com.honeyosori.dogfile.domain.oauth.component.KakaoOAuthComponent;
+import com.honeyosori.dogfile.domain.oauth.constant.KakaoUrl;
+import com.honeyosori.dogfile.domain.oauth.constant.TokenType;
+import com.honeyosori.dogfile.domain.oauth.dto.CreateDogusAccountDto;
 import com.honeyosori.dogfile.domain.oauth.dto.CreateKakaoAccountDto;
+import com.honeyosori.dogfile.domain.oauth.dto.KakaoTokenResponse;
 import com.honeyosori.dogfile.domain.oauth.dto.KakaoUserInformation;
 import com.honeyosori.dogfile.domain.oauth.exception.OAuthException;
 import com.honeyosori.dogfile.domain.user.entity.User;
 import com.honeyosori.dogfile.domain.user.repository.UserRepository;
-import com.honeyosori.dogfile.global.constant.DogUrl;
+import com.honeyosori.dogfile.global.constant.*;
 import com.honeyosori.dogfile.global.response.BaseResponse;
 import com.honeyosori.dogfile.global.response.BaseResponseStatus;
+import com.honeyosori.dogfile.global.utility.JwtUtility;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +28,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,135 +35,117 @@ import java.util.Map;
 @Service
 public class KakaoOAuthService {
     private final UserRepository userRepository;
-    private final KakaoOAuthClient kakaoOAuthClient;
+    private final KakaoOAuthComponent kakaoOAuthComponent;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    private final JwtUtility jwtUtility;
 
-    public KakaoOAuthService(UserRepository userRepository, KakaoOAuthClient kakaoOAuthClient) {
+    public KakaoOAuthService(UserRepository userRepository, KakaoOAuthComponent kakaoOAuthComponent, JwtUtility jwtUtility) {
         this.userRepository = userRepository;
-        this.kakaoOAuthClient = kakaoOAuthClient;
-    }
-
-    private String encodeUrl(String url) {
-        return URLEncoder.encode(url, StandardCharsets.UTF_8);
+        this.kakaoOAuthComponent = kakaoOAuthComponent;
+        this.jwtUtility = jwtUtility;
     }
 
     public ResponseEntity<?> authenticate(HttpServletRequest request) {
-        System.out.println("finding code");
-        String code = request.getParameter("code");
-
-        if(code == null) {
-            System.out.println("CANNOT FIND CODE!!");
-        }
-
-        System.out.println(code);
+        String code = request.getParameter(RequestParameter.CODE);
 
         if (code == null) {
-            throw new OAuthException(BaseResponseStatus.REJECTED);
+            throw new OAuthException(BaseResponseStatus.INTERNAL_SERVER_ERROR);
         }
 
         return requestAccessToken(code);
     }
 
-    private ResponseEntity<?> requestAccessToken(String code) {
-        RestClient restClient = RestClient.builder()
-                .baseUrl(kakaoOAuthClient.getAuthUri()).build();
+    public String getEmailUsingAccessToken(String accessToken) {
+        RestClient restClient = RestClient.builder().baseUrl(kakaoOAuthComponent.API_URI).build();
 
-        System.out.println(kakaoOAuthClient.getAuthUri());
-        System.out.println(kakaoOAuthClient.getGrantType());
-        System.out.println(kakaoOAuthClient.getClientId());
-        System.out.println(kakaoOAuthClient.getRedirectUri());
+        KakaoUserInformation kakaoUserInformation = restClient.get()
+                .uri(KakaoUrl.GET_USER_INFORMATION)
+                .header(HttpHeaders.AUTHORIZATION, TokenType.BEARER + accessToken)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, (request, response) -> {
+                    throw new OAuthException(BaseResponseStatus.REJECTED);
+                })
+                .body(KakaoUserInformation.class);
+
+        if (kakaoUserInformation == null || kakaoUserInformation.getKakaoAccount() == null) {
+            throw new OAuthException(BaseResponseStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        if (kakaoUserInformation.getKakaoAccount().getEmail() == null || kakaoUserInformation.getKakaoAccount().getEmail().isEmpty()) {
+            throw new OAuthException(BaseResponseStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        return kakaoUserInformation.getKakaoAccount().getEmail();
+    }
+
+    private ResponseEntity<?> requestAccessToken(String code) {
+        RestClient restClient = RestClient.builder().baseUrl(kakaoOAuthComponent.AUTH_URI).build();
 
         MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
 
-        requestBody.add("grant_type", kakaoOAuthClient.getGrantType());
-        requestBody.add("client_id", kakaoOAuthClient.getClientId());
-        requestBody.add("code", code);
-        requestBody.add("redirect_uri", kakaoOAuthClient.getRedirectUri() + "/dogfile/v1/oauth/kakao/oauth");
+        requestBody.add(RequestParameter.CODE, code);
+        requestBody.add(RequestParameter.GRANT_TYPE, kakaoOAuthComponent.GRANT_TYPE);
+        requestBody.add(RequestParameter.CLIENT_ID, kakaoOAuthComponent.CLIENT_ID);
+        requestBody.add(RequestParameter.REDIRECT_URI, kakaoOAuthComponent.REDIRECT_URI + DogUrl.DOGFILE_OAUTH);
 
-        System.out.println("Trying to receive access token");
-
-        RestClient.ResponseSpec responseSpec = restClient.post()
-                .uri("/oauth/token")
+        KakaoTokenResponse tokenResponse = restClient.post()
+                .uri(KakaoUrl.GET_TOKEN)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .acceptCharset(StandardCharsets.UTF_8)
                 .body(requestBody)
-                .retrieve();
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, (request, response) -> {
+                    throw new OAuthException(BaseResponseStatus.REJECTED);
+                }).body(KakaoTokenResponse.class);
 
-        String tokenResponse = responseSpec.body(String.class);
-        /*
-                onStatus(HttpStatusCode::isError, (request, response) -> {
-            throw new OAuthException(BaseResponseStatus.REJECTED);
-        }).body(String.class);
-*/
-        JsonObject jsonObject = JsonParser.parseString(tokenResponse).getAsJsonObject();
-
-        String accessToken = jsonObject.get("access_token").getAsString();
-        String refreshToken = jsonObject.get("refresh_token").getAsString();
-
-        Map<String, String> result = new HashMap<>();
-
-        result.put("access_token", accessToken);
-        result.put("refresh_token", refreshToken);
-
-        readUserInformation(accessToken);
-
-        return ResponseEntity.ok(result);
-    }
-
-    public void readUserInformation(String accessToken) {
-        RestClient restClient = RestClient.builder()
-                .baseUrl("https://kapi.kakao.com").build();
-
-        MultiValueMap<String, String> kakaoUserInformationBody = new LinkedMultiValueMap<>();
-        kakaoUserInformationBody.add("grant_type", "authorization_code");
-        kakaoUserInformationBody.add("access_token", accessToken);
-
-        RestClient.ResponseSpec responseSpec = restClient.post()
-                .uri("/v2/user/me")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .header("Authorization", "Bearer " + accessToken)
-                .acceptCharset(StandardCharsets.UTF_8)
-                .body(kakaoUserInformationBody)
-                .retrieve();
-
-        KakaoUserInformation userInformationResult = responseSpec.onStatus(HttpStatusCode::isError, (request, response) -> {
-            throw new OAuthException(BaseResponseStatus.REJECTED);
-        }).body(KakaoUserInformation.class);
-
-        String email = userInformationResult.getKakaoAccount().getEmail();
-        boolean userExists = this.userRepository.findUserByEmail(email).isPresent();
-
-        if (userExists) {
-            return;
+        if (tokenResponse == null) {
+            throw new OAuthException(BaseResponseStatus.INTERNAL_SERVER_ERROR);
         }
 
-        User user = new User(userInformationResult.getKakaoAccount().getEmail());
-        this.userRepository.save(user);
+        return readUserInformation(tokenResponse.getAccessToken());
     }
 
-    private void sendRegisterRequestToDogus(String email, CreateKakaoAccountDto createKakaoAccountDto) {
-        RestClient restClient = RestClient.builder()
-                .baseUrl(DogUrl.DOGUS.getUrl())
-                .build();
+    public ResponseEntity<?> readUserInformation(String kakaoAccessToken) {
+        String email = getEmailUsingAccessToken(kakaoAccessToken);
+
+        User user = this.userRepository.findUserByEmail(email).orElse(null);
+
+        if (user != null && user.getPassword() != null) {
+            Map<String, String> claims = new HashMap<>();
+
+            claims.put(PayloadData.ORIGIN, JwtOrigin.LOCAL.getName());
+            claims.put(PayloadData.EMAIL, email);
+
+            return jwtUtility.generateJwtResponse(claims);
+        }
+
+        if (user == null) {
+            User newUser = new User(email);
+            this.userRepository.save(newUser);
+        }
+
+        Map<String, String> claims = new HashMap<>();
+
+        claims.put(PayloadData.ORIGIN, JwtOrigin.KAKAO.getName());
+        claims.put(PayloadData.EMAIL, email);
+        claims.put(PayloadData.ACCESS_TOKEN, kakaoAccessToken);
+
+        return jwtUtility.generateJwtResponse(claims);
+    }
+
+    private void sendRegisterRequestToDogus(CreateDogusAccountDto createDogusAccountDto) {
+        RestClient restClient = RestClient.builder().baseUrl(DogUrl.DOGUS).build();
 
         ObjectMapper objectMapper = new ObjectMapper();
 
         try {
-            String jsonString = objectMapper.writeValueAsString(createKakaoAccountDto);
+            String dogusAccountInformation = objectMapper.writeValueAsString(createDogusAccountDto);
 
-            JsonObject jsonObject = JsonParser.parseString(jsonString).getAsJsonObject();
-            jsonObject.addProperty("email", email);
-
-            RestClient.ResponseSpec responseSpec = restClient.post()
-                    .uri("/api/v1/user/register")
-                    .headers(httpHeaders -> {
-                        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-                    })
-                    .body(BodyInserters.fromValue(jsonObject))
-                    .retrieve();
+            RestClient.ResponseSpec responseSpec = restClient.post().uri(DogUrl.DOGUS_REGISTER).headers(httpHeaders -> {
+                httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+            }).body(BodyInserters.fromValue(dogusAccountInformation)).retrieve();
 
             String result = responseSpec.body(String.class);
-            System.out.println(result);
 
         } catch (JsonProcessingException e) {
             e.printStackTrace();
@@ -168,22 +153,17 @@ public class KakaoOAuthService {
     }
 
     private void sendRegisterRequestToDogchat(String userId, String email) {
-        RestClient restClient = RestClient.builder()
-                .baseUrl(DogUrl.DOGCHAT.getUrl())
-                .build();
+        RestClient restClient = RestClient.builder().baseUrl(DogUrl.DOGCHAT).build();
 
-        RestClient.ResponseSpec responseSpec = restClient.post()
-                .uri(String.format("/api/v1/chat/user?userId=%s&userName=%s", userId, email))
-                .headers(httpHeaders -> {
-                    httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-                })
-                .retrieve();
+        RestClient.ResponseSpec responseSpec = restClient.post().uri(String.format(DogUrl.DOGCHAT_REGISTER, userId, email)).headers(httpHeaders -> {
+            httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+        }).retrieve();
 
         String result = responseSpec.body(String.class);
         System.out.println(result);
     }
 
-    public BaseResponse<?> registerNewAccount(String email, CreateKakaoAccountDto createKakaoAccountDto) {
+    public BaseResponse<?> registerKakaoAccount(String email, CreateKakaoAccountDto createKakaoAccountDto) {
         User user = this.userRepository.getUserByEmail(email);
 
         if (user.getPassword() != null) {
@@ -191,20 +171,13 @@ public class KakaoOAuthService {
         }
 
         user.setPassword(encoder.encode(createKakaoAccountDto.password()));
-        user.setRealName(createKakaoAccountDto.realName());
-        user.setGender(createKakaoAccountDto.gender());
-        user.setBirthday(createKakaoAccountDto.birthday());
-        user.setPhoneNumber(createKakaoAccountDto.phoneNumber());
-        user.setAddress(createKakaoAccountDto.address());
-        user.setProfileImageUrl(createKakaoAccountDto.profileImageUrl());
-        user.setUserStatus(User.UserStatus.PUBLIC);
-        user.setRole(User.Role.USER);
-
+        user.registerKakaoUser(createKakaoAccountDto);
 
         this.userRepository.save(user);
 
         try {
-            sendRegisterRequestToDogus(email, createKakaoAccountDto);
+            CreateDogusAccountDto createDogusAccountDto = createKakaoAccountDto.toDogusAccount(email);
+            sendRegisterRequestToDogus(createDogusAccountDto);
         } catch (Exception e) {
             e.printStackTrace();
         }

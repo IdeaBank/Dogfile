@@ -8,6 +8,6 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @Data
-public class KakaoAccount {
-    private String email;
+public class KakaoTokenResponse {
+    private String accessToken;
 }

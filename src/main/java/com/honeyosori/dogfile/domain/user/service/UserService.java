@@ -2,6 +2,7 @@ package com.honeyosori.dogfile.domain.user.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.honeyosori.dogfile.domain.oauth.exception.OAuthException;
 import com.honeyosori.dogfile.domain.user.dto.*;
 import com.honeyosori.dogfile.domain.user.entity.User;
 import com.honeyosori.dogfile.domain.user.entity.User.Role;
@@ -10,20 +11,24 @@ import com.honeyosori.dogfile.domain.user.entity.WithdrawWaiting;
 import com.honeyosori.dogfile.domain.user.repository.UserRepository;
 import com.honeyosori.dogfile.domain.user.repository.WithdrawWaitingRepository;
 import com.honeyosori.dogfile.global.constant.DogUrl;
+import com.honeyosori.dogfile.global.constant.JwtOrigin;
+import com.honeyosori.dogfile.global.constant.PayloadData;
 import com.honeyosori.dogfile.global.response.BaseResponse;
 import com.honeyosori.dogfile.global.response.BaseResponseStatus;
 import com.honeyosori.dogfile.global.utility.JwtUtility;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.net.HttpCookie;
+import java.util.HashMap;
+import java.util.Map;
 
 @Transactional
 @Service
@@ -42,23 +47,22 @@ public class UserService {
 
     private void sendWithdrawRequestToDogchat(String userId) {
         WebClient webClient = WebClient.builder()
-                .baseUrl(DogUrl.DOGCHAT.getUrl())
+                .baseUrl(DogUrl.DOGCHAT)
                 .build();
 
         WebClient.ResponseSpec responseSpec = webClient.delete()
-                .uri(String.format("/api/v1/chat/user?userId=%s", userId))
+                .uri(String.format(DogUrl.DOGCHAT_WITHDRAW, userId))
                 .headers(httpHeaders -> {
                     httpHeaders.setContentType(MediaType.APPLICATION_JSON);
                 })
                 .retrieve();
-        String result = responseSpec.bodyToMono(String.class).block();
 
-        System.out.println(result);
+        String result = responseSpec.bodyToMono(String.class).block();
     }
 
     private void sendRegisterRequestToDogus(CreateUserDto createUserDto) {
-        WebClient webClient = WebClient.builder()
-                .baseUrl(DogUrl.DOGUS.getUrl())
+        RestClient restClient = RestClient.builder()
+                .baseUrl(DogUrl.DOGUS)
                 .build();
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -66,16 +70,18 @@ public class UserService {
         try {
             String jsonString = objectMapper.writeValueAsString(createUserDto);
 
-            WebClient.ResponseSpec responseSpec = webClient.post()
-                    .uri("/api/v1/user/register")
+            RestClient.ResponseSpec responseSpec = restClient.post()
+                    .uri(DogUrl.DOGUS_REGISTER)
                     .headers(httpHeaders -> {
                         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
                     })
                     .body(BodyInserters.fromValue(jsonString))
                     .retrieve();
-            String result = responseSpec.bodyToMono(String.class).block();
 
-            System.out.println(result);
+            String result = responseSpec.onStatus(HttpStatusCode::is4xxClientError, (r, e) -> {
+                        throw new OAuthException(BaseResponseStatus.INVALID_JWT_TOKEN);
+                    })
+                    .body(String.class);
 
         } catch (JsonProcessingException e) {
             e.printStackTrace();
@@ -84,18 +90,17 @@ public class UserService {
 
     private void sendRegisterRequestToDogchat(String userId, String email) {
         WebClient webClient = WebClient.builder()
-                .baseUrl(DogUrl.DOGCHAT.getUrl())
+                .baseUrl(DogUrl.DOGCHAT)
                 .build();
 
         WebClient.ResponseSpec responseSpec = webClient.post()
-                .uri(String.format("/api/v1/chat/user?userId=%s&userName=%s", userId, email))
+                .uri(String.format(DogUrl.DOGCHAT_REGISTER, userId, email))
                 .headers(httpHeaders -> {
                     httpHeaders.setContentType(MediaType.APPLICATION_JSON);
                 })
                 .retrieve();
-        String result = responseSpec.bodyToMono(String.class).block();
 
-        System.out.println(result);
+        String result = responseSpec.bodyToMono(String.class).block();
     }
 
     public BaseResponse<?> register(CreateUserDto createUserDto) {
@@ -190,17 +195,12 @@ public class UserService {
         }
 
         if (encoder.matches(password, user.getPassword())) {
-            String accessToken = jwtUtility.generateAccessToken(email, user.getPassword());
+            Map<String, String> claims = new HashMap<>();
 
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.set("Authorization", accessToken);
+            claims.put(PayloadData.ORIGIN, JwtOrigin.LOCAL.getName());
+            claims.put(PayloadData.EMAIL, email);
 
-            HttpCookie cookie = new HttpCookie("refresh_token", accessToken);
-            cookie.setPath("/");
-
-            responseHeaders.add(HttpHeaders.SET_COOKIE, cookie.toString().replace("\"", ""));
-
-            return ResponseEntity.ok().headers(responseHeaders).build();
+            return jwtUtility.generateJwtResponse(claims);
         }
 
         return BaseResponse.getResponseEntity(BaseResponseStatus.WRONG_PASSWORD);

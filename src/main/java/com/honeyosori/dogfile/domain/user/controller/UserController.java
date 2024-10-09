@@ -5,6 +5,8 @@ import com.honeyosori.dogfile.domain.user.dto.LoginDto;
 import com.honeyosori.dogfile.domain.user.dto.UpdateUserDto;
 import com.honeyosori.dogfile.domain.user.dto.UpdateUserStatusDto;
 import com.honeyosori.dogfile.domain.user.service.UserService;
+import com.honeyosori.dogfile.global.constant.CustomHeader;
+import com.honeyosori.dogfile.global.constant.PayloadData;
 import com.honeyosori.dogfile.global.response.BaseResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,28 +34,28 @@ public class UserController {
     }
 
     @PatchMapping
-    public ResponseEntity<?> updateUser(@RequestBody UpdateUserDto updateUserDto, @RequestHeader("X-EMAIL") String email) {
+    public ResponseEntity<?> updateUser(@RequestBody UpdateUserDto updateUserDto, @RequestHeader(CustomHeader.EMAIL) String email) {
         return BaseResponse.getResponseEntity(this.userService.updateUser(updateUserDto, email));
     }
 
     @PatchMapping("/status")
-    public ResponseEntity<?> updateUserStatus(@Valid @RequestBody UpdateUserStatusDto updateUserStatusDto, @RequestHeader("X-EMAIL") String email) {
+    public ResponseEntity<?> updateUserStatus(@Valid @RequestBody UpdateUserStatusDto updateUserStatusDto, @RequestHeader(CustomHeader.EMAIL) String email) {
         return BaseResponse.getResponseEntity(this.userService.changeUserStatus(updateUserStatusDto, email));
     }
 
     @DeleteMapping
-    public ResponseEntity<?> deleteUser(@RequestHeader("X-EMAIL") String email) {
+    public ResponseEntity<?> deleteUser(@RequestHeader(CustomHeader.EMAIL) String email) {
         return BaseResponse.getResponseEntity(this.userService.processWithdrawRequest(email));
     }
 
     // TODO: change to internal server only
     @GetMapping("/info")
-    public ResponseEntity<?> getUserInfo(@RequestHeader("X-EMAIL") String email) {
+    public ResponseEntity<?> getUserInfo(@RequestHeader(CustomHeader.EMAIL) String email) {
         return BaseResponse.getResponseEntity(this.userService.getUserInfo(email));
     }
 
     @GetMapping("/login-info")
-    public ResponseEntity<?> getLoginInfo(@RequestHeader("X-EMAIL") String email) {
+    public ResponseEntity<?> getLoginInfo(@RequestHeader(CustomHeader.EMAIL) String email) {
         return BaseResponse.getResponseEntity(this.userService.getUserLoginInfo(email));
     }
 }

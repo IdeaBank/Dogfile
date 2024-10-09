@@ -16,4 +16,7 @@ public record CreateKakaoAccountDto(@NotNull String password,
                                     @NotNull String profileImageUrl,
                                     String preferCategory,
                                     String username) {
+    public CreateDogusAccountDto toDogusAccount(String email) {
+        return new CreateDogusAccountDto(email, password, realName, gender, birthday, phoneNumber, address, profileImageUrl, preferCategory, username);
+    }
 }

@@ -1,6 +1,6 @@
 oauth:
   kakao:
     api_key: ${KAKAO_CLIENT_ID}
-    auth_uri: ${KAKAO_AUTH_URI}
-    api_uri: ${KAKAO_API_URI}
-    redirect_uri: ${KAKAO_REDIRECT_URI}
+    auth_url: ${KAKAO_AUTH_URL}
+    api_url: ${KAKAO_API_URL}
+    redirect_url: ${KAKAO_REDIRECT_URL}

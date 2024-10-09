@@ -2,6 +2,9 @@ package com.honeyosori.dogfile.domain.oauth.controller;
 
 import com.honeyosori.dogfile.domain.oauth.dto.CreateKakaoAccountDto;
 import com.honeyosori.dogfile.domain.oauth.service.KakaoOAuthService;
+import com.honeyosori.dogfile.global.constant.CustomHeader;
+import com.honeyosori.dogfile.global.constant.PayloadData;
+import com.honeyosori.dogfile.global.constant.RequestParameter;
 import com.honeyosori.dogfile.global.response.BaseResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -25,7 +28,7 @@ public class OAuthController {
     }
 
     @PostMapping("/kakao/register")
-    public BaseResponse<?> registerKakaoAccount(@RequestHeader("X-EMAIL") String email, @Valid @RequestBody CreateKakaoAccountDto createKakaoAccountDto) {
-        return this.kakaoOAuthService.registerNewAccount(email, createKakaoAccountDto);
+    public BaseResponse<?> registerKakaoAccount(@RequestHeader(CustomHeader.EMAIL) String email, @Valid @RequestBody CreateKakaoAccountDto createKakaoAccountDto) {
+        return this.kakaoOAuthService.registerKakaoAccount(email, createKakaoAccountDto);
     }
 }
