@@ -78,10 +78,14 @@ public class UserService {
                     .body(BodyInserters.fromValue(jsonString))
                     .retrieve();
 
-            String result = responseSpec.onStatus(HttpStatusCode::is4xxClientError, (r, e) -> {
+            String result = responseSpec
+                    .body(String.class);
+
+            /*
+            .onStatus(HttpStatusCode::is4xxClientError, (r, e) -> {
                         throw new OAuthException(BaseResponseStatus.INVALID_JWT_TOKEN);
                     })
-                    .body(String.class);
+             */
 
         } catch (JsonProcessingException e) {
             e.printStackTrace();
