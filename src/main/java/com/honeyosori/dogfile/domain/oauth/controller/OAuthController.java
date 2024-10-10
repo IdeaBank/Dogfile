@@ -9,6 +9,7 @@ import com.honeyosori.dogfile.global.response.BaseResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,5 +31,10 @@ public class OAuthController {
     @PostMapping("/kakao/register")
     public BaseResponse<?> registerKakaoAccount(@RequestHeader(CustomHeader.EMAIL) String email, @Valid @RequestBody CreateKakaoAccountDto createKakaoAccountDto) {
         return this.kakaoOAuthService.registerKakaoAccount(email, createKakaoAccountDto);
+    }
+
+    @PostMapping("/kakao/login")
+    public ResponseEntity<?> loginWithKakaoAccount(@RequestHeader(HttpHeaders.AUTHORIZATION) String accessToken) {
+        return this.kakaoOAuthService.loginWithKakao(accessToken);
     }
 }

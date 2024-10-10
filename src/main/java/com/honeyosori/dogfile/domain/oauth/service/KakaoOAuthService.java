@@ -17,6 +17,7 @@ import com.honeyosori.dogfile.global.response.BaseResponse;
 import com.honeyosori.dogfile.global.response.BaseResponseStatus;
 import com.honeyosori.dogfile.global.utility.JwtUtility;
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -104,6 +105,12 @@ public class KakaoOAuthService {
         }
 
         return readUserInformation(tokenResponse.getAccessToken());
+    }
+
+    public ResponseEntity<?> loginWithKakao(String accessToken) {
+        System.out.println(accessToken);
+
+        return readUserInformation(accessToken);
     }
 
     public ResponseEntity<?> readUserInformation(String kakaoAccessToken) {
