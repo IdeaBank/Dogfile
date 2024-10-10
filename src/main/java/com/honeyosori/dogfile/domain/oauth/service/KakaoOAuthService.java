@@ -59,6 +59,8 @@ public class KakaoOAuthService {
     public String getEmailUsingAccessToken(String accessToken) {
         RestClient restClient = RestClient.builder().baseUrl(kakaoOAuthComponent.API_URI).build();
 
+        System.out.println("getting access token using " + accessToken);
+
         KakaoUserInformation kakaoUserInformation = restClient.get()
                 .uri(KakaoUrl.GET_USER_INFORMATION)
                 .header(HttpHeaders.AUTHORIZATION, TokenType.BEARER + accessToken)
@@ -75,6 +77,8 @@ public class KakaoOAuthService {
         if (kakaoUserInformation.getKakaoAccount().getEmail() == null || kakaoUserInformation.getKakaoAccount().getEmail().isEmpty()) {
             throw new OAuthException(BaseResponseStatus.INTERNAL_SERVER_ERROR);
         }
+
+        System.out.println(kakaoUserInformation.getKakaoAccount().getEmail());
 
         return kakaoUserInformation.getKakaoAccount().getEmail();
     }
