@@ -112,7 +112,7 @@ public class KakaoOAuthService {
     }
 
     public ResponseEntity<?> loginWithKakao(String accessToken) {
-        System.out.println(accessToken);
+        accessToken = accessToken.replace("Bearer ", "");
 
         return readUserInformation(accessToken);
     }
