@@ -9,6 +9,7 @@ import com.honeyosori.dogfile.global.constant.CustomHeader;
 import com.honeyosori.dogfile.global.constant.PayloadData;
 import com.honeyosori.dogfile.global.response.BaseResponse;
 import jakarta.validation.Valid;
+import org.hibernate.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -52,6 +53,16 @@ public class UserController {
     @GetMapping("/info")
     public ResponseEntity<?> getUserInfo(@RequestHeader(CustomHeader.EMAIL) String email) {
         return BaseResponse.getResponseEntity(this.userService.getUserInfo(email));
+    }
+
+    @GetMapping("/find")
+    public ResponseEntity<?> findUser(@RequestParam("email") String email) {
+        return BaseResponse.getResponseEntity(this.userService.getUserInfo(email));
+    }
+
+    @GetMapping("/find-all")
+    public ResponseEntity<?> findAllUser(@RequestParam("email") String email) {
+        return BaseResponse.getResponseEntity(this.userService.findAllUser(email));
     }
 
     @GetMapping("/login-info")

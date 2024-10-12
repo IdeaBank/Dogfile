@@ -28,6 +28,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Transactional
@@ -243,6 +244,12 @@ public class UserService {
         UserInfoDto userInfoDto = UserInfoDto.of(user);
 
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, userInfoDto);
+    }
+
+    public BaseResponse<?> findAllUser(String email) {
+        List<User> user = this.userRepository.findAllByEmailContaining(email);
+
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, user.stream().map(UserInfoDto::of));
     }
 
     public BaseResponse<?> getUserLoginInfo(String email) {
