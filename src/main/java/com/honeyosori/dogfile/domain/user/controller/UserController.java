@@ -3,13 +3,10 @@ package com.honeyosori.dogfile.domain.user.controller;
 import com.honeyosori.dogfile.domain.user.dto.CreateUserDto;
 import com.honeyosori.dogfile.domain.user.dto.LoginDto;
 import com.honeyosori.dogfile.domain.user.dto.UpdateUserDto;
-import com.honeyosori.dogfile.domain.user.dto.UpdateUserStatusDto;
 import com.honeyosori.dogfile.domain.user.service.UserService;
 import com.honeyosori.dogfile.global.constant.CustomHeader;
-import com.honeyosori.dogfile.global.constant.PayloadData;
 import com.honeyosori.dogfile.global.response.BaseResponse;
 import jakarta.validation.Valid;
-import org.hibernate.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,14 +36,9 @@ public class UserController {
         return BaseResponse.getResponseEntity(this.userService.updateUser(updateUserDto, email));
     }
 
-    @PatchMapping("/status")
-    public ResponseEntity<?> updateUserStatus(@Valid @RequestBody UpdateUserStatusDto updateUserStatusDto, @RequestHeader(CustomHeader.EMAIL) String email) {
-        return BaseResponse.getResponseEntity(this.userService.changeUserStatus(updateUserStatusDto, email));
-    }
-
     @DeleteMapping
     public ResponseEntity<?> deleteUser(@RequestHeader(CustomHeader.EMAIL) String email) {
-        return BaseResponse.getResponseEntity(this.userService.processWithdrawRequest(email));
+        return BaseResponse.getResponseEntity(this.userService.deleteUser(email));
     }
 
     // TODO: change to internal server only

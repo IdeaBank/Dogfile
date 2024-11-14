@@ -14,11 +14,9 @@ public record CreateUserDto(@NotNull @Email String email,
                             @NotNull User.GenderType gender,
                             @DateTimeFormat(pattern = "yyyy-MM-dd") @Past @NotNull Date birthday,
                             @NotNull String phoneNumber,
-                            @NotNull String address,
                             @NotNull String profileImageUrl,
-                            String preferCategory,
                             String username) {
     public User toUser() {
-        return new User(email, password, realName, gender, birthday, phoneNumber, address, profileImageUrl);
+        return new User(email, password, realName, gender, birthday, phoneNumber, profileImageUrl);
     }
 }

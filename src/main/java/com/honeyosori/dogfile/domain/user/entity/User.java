@@ -73,12 +73,6 @@ public class User {
 //    @Column
 //    private String address; 주소삭제
 
-    @Getter
-    @Setter
-    @Column
-    @Enumerated(EnumType.STRING)
-    private UserStatus userStatus;
-
     @CreationTimestamp
     @Column(nullable = false, name = "created_at")
     private LocalDateTime createdAt;
@@ -90,20 +84,19 @@ public class User {
     private Deleted deleted;
 
     @Timestamp
+    @Setter
     @Column(name = "withdraw_request_at")
-    private LocalDateTime withdraw_request_at;
+    private LocalDateTime withdrawRequestAt;
 
-    public User(String email, String password, String realName, GenderType gender, Date birthday, String phoneNumber, String address, String profileImageUrl) {
+    public User(String email, String password, String realName, GenderType gender, Date birthday, String phoneNumber, String profileImageUrl) {
         this.email = email;
         this.password = password;
         this.realName = realName;
         this.gender = gender;
         this.birthday = birthday;
         this.phoneNumber = phoneNumber;
-//        this.address = address;
         this.profileImageUrl = profileImageUrl; // TODO: 유저 등록 시 프로필 이미지 없으면 default 이미지 url을 저장하도록 하는 if-else 추가.
         this.role = Role.USER;
-        this.userStatus = UserStatus.PRIVATE;
         this.createdAt = LocalDateTime.now();
         this.deleted = Deleted.FALSE;
     }
@@ -112,18 +105,6 @@ public class User {
         this.email = email;
     }
 
-    public void resetUser() {
-        this.email = null;
-        this.password = null;
-        this.realName = null;
-        this.gender = null;
-        this.birthday = null;
-        this.phoneNumber = null;
-//        this.address = null;
-        this.profileImageUrl = null;
-        this.role = Role.GUEST;
-    } // TODO: null이 되면 안됨. 삭제 시 null 로 바꾸지 않고 지울 수 있도록 수정 바람.
-
     public void registerKakaoUser(CreateKakaoAccountDto createKakaoAccountDto) {
         this.realName = createKakaoAccountDto.realName();
         this.gender = createKakaoAccountDto.gender();
@@ -131,7 +112,6 @@ public class User {
         this.phoneNumber = createKakaoAccountDto.phoneNumber();
 //        this.address = createKakaoAccountDto.address(); // 주소 삭제.
         this.profileImageUrl = createKakaoAccountDto.profileImageUrl();
-        this.userStatus = User.UserStatus.PUBLIC;
         this.role = User.Role.USER;
         this.createdAt = LocalDateTime.now();
         this.deleted = Deleted.FALSE;
@@ -143,10 +123,6 @@ public class User {
 
     public enum Role {
         GUEST, USER, ADMIN
-    }
-
-    public enum UserStatus {
-        PUBLIC, PRIVATE, WITHDRAW_REQUESTED, WITHDRAWN
     }
 
     public enum Deleted { TRUE, FALSE }
