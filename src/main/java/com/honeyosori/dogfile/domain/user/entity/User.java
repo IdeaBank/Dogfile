@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.type.descriptor.jdbc.TinyIntJdbcType;
 
 import java.sql.Date;
 import java.time.LocalDateTime;
@@ -79,9 +80,8 @@ public class User {
 
     @Getter
     @Setter
-    @Column
-    @Enumerated(EnumType.STRING)
-    private Deleted deleted;
+    @Column(nullable = false, columnDefinition = "TINYINT", length = 1)
+    private Short deleted;
 
     @Timestamp
     @Setter
@@ -98,7 +98,7 @@ public class User {
         this.profileImageUrl = profileImageUrl; // TODO: 유저 등록 시 프로필 이미지 없으면 default 이미지 url을 저장하도록 하는 if-else 추가.
         this.role = Role.USER;
         this.createdAt = LocalDateTime.now();
-        this.deleted = Deleted.FALSE;
+        this.deleted = 0;
     }
 
     public User(String email) {
@@ -114,7 +114,7 @@ public class User {
         this.profileImageUrl = createKakaoAccountDto.profileImageUrl();
         this.role = User.Role.USER;
         this.createdAt = LocalDateTime.now();
-        this.deleted = Deleted.FALSE;
+        this.deleted = 0;
     }
 
     public enum GenderType {
@@ -124,6 +124,4 @@ public class User {
     public enum Role {
         GUEST, USER, ADMIN
     }
-
-    public enum Deleted { TRUE, FALSE }
 }

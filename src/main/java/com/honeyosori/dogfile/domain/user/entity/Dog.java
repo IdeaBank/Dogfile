@@ -55,9 +55,8 @@ public class Dog {
 
     @Getter
     @Setter
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private Deleted deleted;
+    @Column(nullable = false, columnDefinition = "TINYINT", length = 1)
+    private Short deleted;
 
     @Getter
     @Setter
@@ -78,12 +77,10 @@ public class Dog {
         this.birthday = birthday;
         this.size = size;
         this.dogImage = dogImage;
-        this.deleted = Deleted.FALSE;
+        this.deleted = 0;
     }
 
     public enum Size {Small, Medium, Large}
-
-    public enum Deleted {TRUE, FALSE}
 }
 
 

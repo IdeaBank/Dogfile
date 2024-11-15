@@ -165,7 +165,7 @@ public class UserService {
 
         User user = this.userRepository.findUserByEmail(email).orElse(null);
 
-        if (user == null || user.getDeleted() == User.Deleted.TRUE) {
+        if (user == null || user.getDeleted() == 1) {
             return BaseResponse.getResponseEntity(BaseResponseStatus.USER_NOT_FOUND);
         }
 
@@ -184,7 +184,7 @@ public class UserService {
     public BaseResponse<?> deleteUser(String email) {
         User user = this.userRepository.getUserByEmail(email);
 
-        user.setDeleted(User.Deleted.TRUE);
+        user.setDeleted((short) 1);
         user.setWithdrawRequestAt(LocalDateTime.now());
 
         this.userRepository.save(user);
