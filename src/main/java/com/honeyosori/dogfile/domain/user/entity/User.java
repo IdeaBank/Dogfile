@@ -74,6 +74,8 @@ public class User {
 //    @Column
 //    private String address; 주소삭제
 
+    @Getter
+    @Setter
     @CreationTimestamp
     @Column(nullable = false, name = "created_at")
     private LocalDateTime createdAt;
@@ -84,6 +86,7 @@ public class User {
     private Short deleted;
 
     @Timestamp
+    @Getter
     @Setter
     @Column(name = "withdraw_request_at")
     private LocalDateTime withdrawRequestAt;

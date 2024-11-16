@@ -252,4 +252,61 @@ public class UserService {
 
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, userLoginInfoDto);
     }
+
+    public BaseResponse<?> findUserById(String id) {
+        User user = this.userRepository.findById(id).orElse(null);
+
+        if (user == null) {
+            return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
+        }
+
+        UserInfoDto userInfoDto = UserInfoDto.of(user);
+
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, userInfoDto);
+    }
+
+    public BaseResponse<?> findUserByAccountName(String accountName) {
+        // TODO: Create DB Index of Account Name
+        User user = this.userRepository.findByAccountName(accountName).orElse(null);
+
+        if (user == null) {
+            return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
+        }
+
+        UserInfoDto userInfoDto = UserInfoDto.of(user);
+
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, userInfoDto);
+    }
+
+    public BaseResponse<?> findUserByPartialAccountName(String partialAccountName) {
+        // Only starting with like can use a normal index
+        // TODO: Create Full-Text Index
+        List<User> user = this.userRepository.findByAccountNameStartingWith(partialAccountName).orElse(null);
+
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, user.stream().map(UserInfoDto::of));
+    }
+
+    public BaseResponse<?> findUserByEmail(String email) {
+        User user = this.userRepository.findUserByEmail(email).orElse(null);
+
+        if (user == null) {
+            return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
+        }
+
+        UserInfoDto userInfoDto = UserInfoDto.of(user);
+
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, userInfoDto);
+    }
+
+    public BaseResponse<?> findUserByPhoneNumber(String phoneNumber) {
+        User user = this.userRepository.findByPhoneNumber(phoneNumber).orElse(null);
+
+        if (user == null) {
+            return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
+        }
+
+        UserInfoDto userInfoDto = UserInfoDto.of(user);
+
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, userInfoDto);
+    }
 }
