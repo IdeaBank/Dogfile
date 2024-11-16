@@ -41,6 +41,16 @@ public class UserController {
         return BaseResponse.getResponseEntity(this.userService.deleteUser(email));
     }
 
+    @DeleteMapping("/cancel")
+    public ResponseEntity<?> cancelDeletion(@RequestHeader(CustomHeader.EMAIL) String email) {
+        return BaseResponse.getResponseEntity(this.userService.cancelDeletion(email));
+    }
+
+    @GetMapping("/withdraw")
+    public ResponseEntity<?> getWithdrawingUser() {
+        return BaseResponse.getResponseEntity(this.userService.getWithdrawingUser());
+    }
+
     // TODO: change to internal server only
     @GetMapping("/info")
     public ResponseEntity<?> getUserInfo(@RequestHeader(CustomHeader.EMAIL) String email) {

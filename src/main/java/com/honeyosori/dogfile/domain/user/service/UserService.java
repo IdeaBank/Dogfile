@@ -196,15 +196,31 @@ public class UserService {
         return BaseResponse.getResponseEntity(BaseResponseStatus.WRONG_PASSWORD);
     }
 
+    @Transactional
     public BaseResponse<?> deleteUser(String email) {
         User user = this.userRepository.getUserByEmail(email);
 
         user.setDeleted((short) 1);
         user.setWithdrawRequestAt(LocalDateTime.now());
 
-        this.userRepository.save(user);
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, null);
+    }
+
+    @Transactional
+    public BaseResponse<?> cancelDeletion(String email) {
+        User user = this.userRepository.getUserByEmail(email);
+
+        user.setDeleted((short) 0);
+        user.setWithdrawRequestAt(null);
 
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, null);
+    }
+
+    public BaseResponse<?> getWithdrawingUser() {
+        // TODO: Create DB Index of Deleted
+        List<User> user = this.userRepository.findByDeleted();
+
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, user);
     }
 
 //    public BaseResponse<?> processWithdrawRequest(String email) {
