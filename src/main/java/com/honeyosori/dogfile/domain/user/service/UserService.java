@@ -14,7 +14,9 @@ import com.honeyosori.dogfile.global.response.BaseResponse;
 import com.honeyosori.dogfile.global.response.BaseResponseStatus;
 import com.honeyosori.dogfile.global.utility.JwtUtility;
 import jakarta.transaction.Transactional;
+import jakarta.validation.constraints.Past;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.sql.Date;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -131,30 +134,42 @@ public class UserService {
         return new BaseResponse<>(BaseResponseStatus.CREATED, createUserDto);
     }
 
+    @Transactional
     public BaseResponse<?> updateUser(UpdateUserDto updateUserDto, String email) {
+        // TODO: Create DB Index of email
         User user = this.userRepository.getUserByEmail(email);
 
         if (user == null) {
             return new BaseResponse<>(BaseResponseStatus.INVALID_JWT_TOKEN, null);
         }
 
+        if (updateUserDto.accountName() != null) {
+            user.setAccountName(updateUserDto.accountName());
+        }
+
         if (updateUserDto.password() != null) {
             user.setPassword(encoder.encode(updateUserDto.password()));
         }
 
-        if (updateUserDto.profileImageUrl() != null) {
-            user.setProfileImageUrl(updateUserDto.profileImageUrl());
+        if (updateUserDto.realName() != null) {
+            user.setRealName(updateUserDto.realName());
+        }
+
+        if (updateUserDto.gender() != null) {
+            user.setGender(updateUserDto.gender());
         }
 
         if (updateUserDto.birthday() != null) {
             user.setBirthday(updateUserDto.birthday());
         }
 
-        if (updateUserDto.phoneNumber() != null) {
-            user.setPhoneNumber(updateUserDto.phoneNumber());
+        if (updateUserDto.profileImageUrl() != null) {
+            user.setProfileImageUrl(updateUserDto.profileImageUrl());
         }
 
-        this.userRepository.save(user);
+        if (updateUserDto.email() != null) {
+            user.setEmail(updateUserDto.email());
+        }
 
         return new BaseResponse<>(BaseResponseStatus.UPDATED, updateUserDto);
     }
