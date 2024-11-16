@@ -47,14 +47,29 @@ public class UserController {
         return BaseResponse.getResponseEntity(this.userService.getUserInfo(email));
     }
 
-    @GetMapping("/find")
-    public ResponseEntity<?> findUser(@RequestParam("email") String email) {
-        return BaseResponse.getResponseEntity(this.userService.getUserInfo(email));
+    @GetMapping
+    public ResponseEntity<?> findUserById(@RequestParam("id") String id) {
+        return BaseResponse.getResponseEntity(this.userService.findUserById(id));
     }
 
-    @GetMapping("/find-all")
-    public ResponseEntity<?> findAllUser(@RequestParam("email") String email) {
-        return BaseResponse.getResponseEntity(this.userService.findAllUser(email));
+    @GetMapping("/by-account-name")
+    public ResponseEntity<?> findUserByAccountName(@RequestParam("accountName") String accountName) {
+        return BaseResponse.getResponseEntity(this.userService.findUserByAccountName(accountName));
+    }
+
+    @GetMapping("by-partial-account-name")
+    public ResponseEntity<?> findUserByPartialAccountName(@RequestParam("partialAccountName") String partialAccountName) {
+        return BaseResponse.getResponseEntity(this.userService.findUserByPartialAccountName(partialAccountName));
+    }
+
+    @GetMapping("/by-email")
+    public ResponseEntity<?> findUserByEmail(@RequestParam("email") String email) {
+        return BaseResponse.getResponseEntity(this.userService.findUserByEmail(email));
+    }
+
+    @GetMapping("/by-phone-number")
+    public ResponseEntity<?> findUserByPhoneNumber(@RequestParam("phoneNumber") String phoneNumber) {
+        return BaseResponse.getResponseEntity(this.userService.findUserByPhoneNumber(phoneNumber));
     }
 
     @GetMapping("/login-info")
