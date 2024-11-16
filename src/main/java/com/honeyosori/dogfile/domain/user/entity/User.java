@@ -118,7 +118,7 @@ public class User {
     }
 
     public enum GenderType {
-        MALE, FEMALE
+        MALE, FEMALE, OTHER
     }
 
     public enum Role {

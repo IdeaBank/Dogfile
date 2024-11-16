@@ -22,9 +22,8 @@ public class Dog {
 
     @Getter
     @Setter
-    @Column(nullable = false, name = "dogfile_user_id")
+    @JoinColumn(nullable = false, name = "dogfile_user_id")
     @ManyToOne
-    @JoinColumn(name = "id")
     private User dogfileUserId;
 
     @Getter
