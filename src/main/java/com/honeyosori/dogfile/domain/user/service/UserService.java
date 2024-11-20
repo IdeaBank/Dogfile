@@ -119,17 +119,17 @@ public class UserService {
 
         this.userRepository.save(newUser);
 
-        try {
-            sendRegisterRequestToDogus(createUserDto);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        try {
-            sendRegisterRequestToDogchat(newUser.getId(), email);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+// TODO: interlock other servers & set transaction
+//        try {
+//            sendRegisterRequestToDogus(createUserDto);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        try {
+//            sendRegisterRequestToDogchat(newUser.getId(), email);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
 
         return new BaseResponse<>(BaseResponseStatus.CREATED, createUserDto);
     }

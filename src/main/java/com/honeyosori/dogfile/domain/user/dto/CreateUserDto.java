@@ -8,15 +8,14 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.sql.Date;
 
-public record CreateUserDto(@NotNull @Email String email,
+public record CreateUserDto(@NotNull String accountName,
                             @NotNull String password,
                             @NotNull String realName,
                             @NotNull User.GenderType gender,
                             @DateTimeFormat(pattern = "yyyy-MM-dd") @Past @NotNull Date birthday,
                             @NotNull String phoneNumber,
-                            @NotNull String profileImageUrl,
-                            String username) {
+                            @NotNull @Email String email) {
     public User toUser() {
-        return new User(email, password, realName, gender, birthday, phoneNumber, profileImageUrl);
+        return new User(accountName, password, realName, gender, birthday, phoneNumber, email);
     }
 }
