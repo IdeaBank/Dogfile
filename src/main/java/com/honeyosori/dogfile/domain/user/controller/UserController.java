@@ -33,6 +33,16 @@ public class UserController {
         return this.userService.login(loginDto);
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader(CustomHeader.EMAIL) String email) {
+        return this.userService.logout(email);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@RequestHeader(CustomHeader.EMAIL) String email, @Valid @CookieValue("refresh_token") String refreshToken) {
+        return this.userService.refresh(email, refreshToken);
+    }
+
     @PatchMapping
     public ResponseEntity<?> updateUser(@RequestBody UpdateUserDto updateUserDto, @RequestHeader(CustomHeader.EMAIL) String email) {
         return BaseResponse.getResponseEntity(this.userService.updateUser(updateUserDto, email));
