@@ -211,7 +211,7 @@ public class UserService {
     public BaseResponse<?> cancelDeletion(String email) {
         User user = this.userRepository.getUserByEmail(email);
 
-        user.setDeleted(true);
+        user.setDeleted(false);
         user.setWithdrawRequestAt(null);
 
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, null);

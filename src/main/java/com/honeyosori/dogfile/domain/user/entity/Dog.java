@@ -50,7 +50,6 @@ public class Dog {
     private String dogImage = null;
 
     @Setter
-
     @Column(nullable = false, columnDefinition = "TINYINT(1)")
     private Boolean deleted;
 

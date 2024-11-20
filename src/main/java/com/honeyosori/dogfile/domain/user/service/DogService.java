@@ -10,7 +10,9 @@ import com.honeyosori.dogfile.domain.user.repository.DogRepository;
 import com.honeyosori.dogfile.domain.user.repository.UserRepository;
 import com.honeyosori.dogfile.global.response.BaseResponse;
 import com.honeyosori.dogfile.global.response.BaseResponseStatus;
+import jakarta.transaction.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,5 +46,20 @@ public class DogService {
                 createUserDogDto.dogImage()
         );
         return new BaseResponse<>(BaseResponseStatus.CREATED, dog);
+    }
+
+    @Transactional
+    public BaseResponse<?> deleteDog(String email, String name) {
+        Dog dog = this.dogRepository.findByNameAndDogfileUserEmail(name, email);
+
+        dog.setDeleted(true);
+        dog.setWithdrawRequestAt(LocalDateTime.now());
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, null);
+    }
+
+    public BaseResponse<?> getWithdrawingDog() {
+        List<Dog> dogs = this.dogRepository.findByDeleted();
+
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, dogs);
     }
 }

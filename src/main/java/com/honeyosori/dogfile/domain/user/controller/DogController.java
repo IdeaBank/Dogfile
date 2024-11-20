@@ -2,6 +2,7 @@ package com.honeyosori.dogfile.domain.user.controller;
 
 import com.honeyosori.dogfile.domain.user.dto.CreateUserDogDto;
 import com.honeyosori.dogfile.domain.user.service.DogService;
+import com.honeyosori.dogfile.global.constant.CustomHeader;
 import com.honeyosori.dogfile.global.response.BaseResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,5 +19,14 @@ public class DogController {
     @PostMapping("/register")
     public ResponseEntity<?> registerUserDog(@RequestBody CreateUserDogDto createUserDogDto) {
         return BaseResponse.getResponseEntity(this.dogService.createUserDog(createUserDogDto));
+    }
+
+    @DeleteMapping
+    public ResponseEntity<?> deleteDog(@RequestHeader(CustomHeader.EMAIL) String email, @RequestParam String name) {
+        return BaseResponse.getResponseEntity(this.dogService.deleteDog(email, name));
+    }
+    @GetMapping("/withdraw")
+    public ResponseEntity<?> getWithdrawingDog() {
+        return BaseResponse.getResponseEntity(this.dogService.getWithdrawingDog());
     }
 }
