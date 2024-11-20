@@ -9,79 +9,74 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.Optional;
+import java.util.UUID;
 
+@Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "dogs")
 public class Dog {
 
-    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    private UUID id;
 
-    @Getter
     @Setter
-
-    @Column(nullable = false, name = "dogfile_user_id")
+    @Column(nullable = false, name = "users_id")
     @ManyToOne(fetch = FetchType.LAZY)
     private User dogfileUser;
 
-    @Getter
     @Setter
     @Column(nullable = false)
     private String name;
 
-    @Getter
     @Setter
     @Column(nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
-    private DogBreed breed;
+    private DogBreed dogBreed;
 
-    @Getter
     @Setter
     @Column(nullable = false)
     private Date birthday;
 
-    @Getter
     @Setter
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Size size;
 
-    @Getter
     @Setter
-    @Column(name = "dog_image")
-    private String dogImage;
+    @Column
+    private String dogImage = null;
 
-    @Getter
     @Setter
-    @Column(nullable = false, columnDefinition = "TINYINT", length = 1)
-    private Short deleted;
 
-    @Getter
+    @Column(nullable = false, columnDefinition = "TINYINT(1)")
+    private Boolean deleted;
+
     @Setter
-    @Column(name = "withdraw_request_at")
+    @Column
     private LocalDateTime withdrawRequestAt;
 
     public Dog(
-            @RequestParam User dogfileUser,
-            @RequestParam String name,
-            @RequestParam DogBreed breed,
-            @RequestParam Date birthday,
-            @RequestParam Size size,
+            User dogfileUser,
+            String name,
+            DogBreed dogBreed,
+            Date birthday,
+            Size size,
             String dogImage
             ) {
         this.dogfileUser = dogfileUser;
         this.name = name;
-        this.breed = breed;
+        this.dogBreed = dogBreed;
         this.birthday = birthday;
         this.size = size;
         this.dogImage = dogImage;
-        this.deleted = 0;
+        this.deleted = false;
     }
 
     public enum Size {Small, Medium, Large}
+
 }
 
 

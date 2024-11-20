@@ -13,16 +13,16 @@ import java.util.UUID;
 public class DogBreed {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(unique = true)
     private Long id;
 
     @Column
     private String breed;
 
     @Column
+    @Enumerated(EnumType.STRING)
     private Size size;
 
-    public DogBreed(@RequestParam Long id, String breed, Size size) {
+    public DogBreed(Long id, String breed, Size size) {
         this.id = id;
         this.breed = breed;
         this.size = size;

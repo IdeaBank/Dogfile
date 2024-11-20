@@ -37,6 +37,7 @@ public enum BaseResponseStatus {
     USER_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "User not found"),
     BREED_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "Breed not found"),
     BADGE_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "Badge not found"),
+    DOG_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "Dog not found"),
 
     NOT_FOLLOWING(false, HttpStatus.CONFLICT.value(), "Not following"),
     NOT_BLOCKING(false, HttpStatus.CONFLICT.value(), "Not blocking"),

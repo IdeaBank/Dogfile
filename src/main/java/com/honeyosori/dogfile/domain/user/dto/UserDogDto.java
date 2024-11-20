@@ -11,6 +11,6 @@ public record UserDogDto(
         String dogImage) {
 
     public static UserDogDto of(Dog dog) {
-        return new UserDogDto(dog.getDogfileUser(), dog.getName(), dog.getBreed(), dog.getDogImage());
+        return new UserDogDto(dog.getDogfileUser(), dog.getName(), dog.getDogBreed(), dog.getDogImage());
     }
 }
