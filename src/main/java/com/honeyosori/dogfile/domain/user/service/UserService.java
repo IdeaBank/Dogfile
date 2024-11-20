@@ -16,6 +16,9 @@ import com.honeyosori.dogfile.global.utility.JwtUtility;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.Past;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -30,6 +33,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Transactional
 @Service
@@ -37,11 +41,13 @@ public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
     private final JwtUtility jwtUtility;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Autowired
-    public UserService(UserRepository userRepository, JwtUtility jwtUtility) {
+    public UserService(UserRepository userRepository, JwtUtility jwtUtility, RedisTemplate<String, String> redisTemplate) {
         this.userRepository = userRepository;
         this.jwtUtility = jwtUtility;
+        this.redisTemplate = redisTemplate;
     }
 
     private void sendWithdrawRequestToDogchat(String userId) {
@@ -139,7 +145,7 @@ public class UserService {
         // TODO: Create DB Index of email
         User user = this.userRepository.getUserByEmail(email);
 
-        if (user == null) {
+        if (user == null || user.getDeleted()) {
             return new BaseResponse<>(BaseResponseStatus.INVALID_JWT_TOKEN, null);
         }
 
@@ -180,7 +186,7 @@ public class UserService {
 
         User user = this.userRepository.findUserByEmail(email).orElse(null);
 
-        if (user == null || !user.getDeleted()) {
+        if (user == null || user.getDeleted()) {
             return BaseResponse.getResponseEntity(BaseResponseStatus.USER_NOT_FOUND);
         }
 
@@ -194,6 +200,37 @@ public class UserService {
         }
 
         return BaseResponse.getResponseEntity(BaseResponseStatus.WRONG_PASSWORD);
+    }
+
+    public ResponseEntity<?> logout(String email) {
+        User user = this.userRepository.findUserByEmail(email).orElse(null);
+
+        if (user == null || user.getDeleted()) {
+            return BaseResponse.getResponseEntity(BaseResponseStatus.USER_NOT_FOUND);
+        }
+
+        ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
+        valueOperations.set(email, "");
+
+        return BaseResponse.getResponseEntity(BaseResponseStatus.SUCCESS);
+    }
+
+    public ResponseEntity<?> refresh(String email, String refreshToken) {
+        ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
+        String whitelistToken = valueOperations.get(email);
+
+        if (Objects.equals(whitelistToken, "")) {
+            return BaseResponse.getResponseEntity(BaseResponseStatus.UNAUTHENTICATED);
+        } else if (!Objects.equals(whitelistToken, refreshToken)) {
+            return BaseResponse.getResponseEntity(BaseResponseStatus.EXPIRED_JWT_TOKEN);
+        }
+
+        Map<String, String> claims = new HashMap<>();
+
+        claims.put(PayloadData.ORIGIN, JwtOrigin.LOCAL.getName());
+        claims.put(PayloadData.EMAIL, email);
+
+        return jwtUtility.generateJwtResponse(claims);
     }
 
     @Transactional
@@ -211,7 +248,7 @@ public class UserService {
     public BaseResponse<?> cancelDeletion(String email) {
         User user = this.userRepository.getUserByEmail(email);
 
-        user.setDeleted(true);
+        user.setDeleted(false);
         user.setWithdrawRequestAt(null);
 
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, null);
@@ -224,26 +261,10 @@ public class UserService {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, user);
     }
 
-//    public BaseResponse<?> processWithdrawRequest(String email) {
-//        User user = this.userRepository.getUserByEmail(email);
-//
-//        if (this.withdrawWaitingRepository.existsByUserId(user.getId())) {
-//            return new BaseResponse<>(BaseResponseStatus.ALREADY_WAITING_FOR_WITHDRAW, null);
-//        }
-//
-//        WithdrawWaiting withdrawWaiting = new WithdrawWaiting(user);
-//        this.withdrawWaitingRepository.save(withdrawWaiting);
-//
-//        user.setUserStatus(UserStatus.WITHDRAW_REQUESTED);
-//        this.userRepository.save(user);
-//
-//        return new BaseResponse<>(BaseResponseStatus.SUCCESS, null);
-//    }
-
     public BaseResponse<?> getUserInfo(String email) {
         User user = this.userRepository.findUserByEmail(email).orElse(null);
 
-        if (user == null) {
+        if (user == null || user.getDeleted()) {
             return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
         }
 
@@ -261,7 +282,7 @@ public class UserService {
     public BaseResponse<?> getUserLoginInfo(String email) {
         User user = this.userRepository.findUserByEmail(email).orElse(null);
 
-        if (user == null) {
+        if (user == null || user.getDeleted()) {
             return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
         }
 
@@ -273,7 +294,7 @@ public class UserService {
     public BaseResponse<?> findUserById(String id) {
         User user = this.userRepository.findById(id).orElse(null);
 
-        if (user == null) {
+        if (user == null || user.getDeleted()) {
             return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
         }
 
@@ -286,7 +307,7 @@ public class UserService {
         // TODO: Create DB Index of Account Name
         User user = this.userRepository.findByAccountName(accountName).orElse(null);
 
-        if (user == null) {
+        if (user == null || user.getDeleted()) {
             return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
         }
 
@@ -306,7 +327,7 @@ public class UserService {
     public BaseResponse<?> findUserByEmail(String email) {
         User user = this.userRepository.findUserByEmail(email).orElse(null);
 
-        if (user == null) {
+        if (user == null || user.getDeleted()) {
             return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
         }
 
@@ -318,7 +339,7 @@ public class UserService {
     public BaseResponse<?> findUserByPhoneNumber(String phoneNumber) {
         User user = this.userRepository.findByPhoneNumber(phoneNumber).orElse(null);
 
-        if (user == null) {
+        if (user == null || user.getDeleted()) {
             return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
         }
 
