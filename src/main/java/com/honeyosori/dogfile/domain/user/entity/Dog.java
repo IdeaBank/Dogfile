@@ -20,11 +20,11 @@ public class Dog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private String id;
 
     @Setter
-    @Column(nullable = false, name = "users_id")
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false, name = "users_id")
     private User dogfileUser;
 
     @Setter
@@ -32,8 +32,8 @@ public class Dog {
     private String name;
 
     @Setter
-    @Column(nullable = false)
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false)
     private DogBreed dogBreed;
 
     @Setter

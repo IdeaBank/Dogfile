@@ -24,7 +24,7 @@ public class User {
 
     @Getter
     @Setter
-    @Column(unique = true, nullable = false, name = "account_name")
+    @Column(unique = true, nullable = false)
     private String accountName;
 
     @Getter
@@ -34,7 +34,7 @@ public class User {
 
     @Getter
     @Setter
-    @Column(nullable = false, name = "real_name")
+    @Column(nullable = false)
     private String realName;
 
     @Getter
@@ -50,12 +50,12 @@ public class User {
 
     @Getter
     @Setter
-    @Column(nullable = false, name = "phone_number")
+    @Column(nullable = false)
     private String phoneNumber;
 
     @Getter
     @Setter
-    @Column(nullable = false, name = "profile_image_url")
+    @Column(nullable = false)
     private String profileImageUrl;
 
     @Getter
@@ -69,27 +69,21 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-//    @Getter
-//    @Setter
-//    @Column
-//    private String address; 주소삭제
-
-    @Getter
-    @Setter
     @CreationTimestamp
-    @Column(nullable = false, name = "created_at")
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @Getter
     @Setter
-    @Column(nullable = false, columnDefinition = "TINYINT", length = 1)
-    private Short deleted;
+    @Column(nullable = false, columnDefinition = "TINYINT(1)")
+    private Boolean deleted;
+
 
     @Timestamp
     @Getter
     @Setter
-    @Column(name = "withdraw_request_at")
-    private LocalDateTime withdrawRequestAt;
+    @Column
+    private LocalDateTime withdrawRequestAt = null;
 
     public User(String email, String password, String realName, GenderType gender, Date birthday, String phoneNumber, String profileImageUrl) {
         this.email = email;
@@ -101,7 +95,7 @@ public class User {
         this.profileImageUrl = profileImageUrl; // TODO: 유저 등록 시 프로필 이미지 없으면 default 이미지 url을 저장하도록 하는 if-else 추가.
         this.role = Role.USER;
         this.createdAt = LocalDateTime.now();
-        this.deleted = 0;
+        this.deleted = false;
     }
 
     public User(String email) {
@@ -117,7 +111,7 @@ public class User {
         this.profileImageUrl = createKakaoAccountDto.profileImageUrl();
         this.role = User.Role.USER;
         this.createdAt = LocalDateTime.now();
-        this.deleted = 0;
+        this.deleted = false;
     }
 
     public enum GenderType {

@@ -180,7 +180,7 @@ public class UserService {
 
         User user = this.userRepository.findUserByEmail(email).orElse(null);
 
-        if (user == null || user.getDeleted() == 1) {
+        if (user == null || !user.getDeleted()) {
             return BaseResponse.getResponseEntity(BaseResponseStatus.USER_NOT_FOUND);
         }
 
@@ -200,7 +200,8 @@ public class UserService {
     public BaseResponse<?> deleteUser(String email) {
         User user = this.userRepository.getUserByEmail(email);
 
-        user.setDeleted((short) 1);
+        user.setDeleted(true);
+
         user.setWithdrawRequestAt(LocalDateTime.now());
 
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, null);
@@ -210,7 +211,7 @@ public class UserService {
     public BaseResponse<?> cancelDeletion(String email) {
         User user = this.userRepository.getUserByEmail(email);
 
-        user.setDeleted((short) 0);
+        user.setDeleted(true);
         user.setWithdrawRequestAt(null);
 
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, null);
