@@ -1,18 +1,18 @@
 package com.honeyosori.dogfile.domain.user.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.UUID;
 
 @Getter
 @Entity
 @NoArgsConstructor
 public class DogBreed {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(unique = true)
     private Long id;
 

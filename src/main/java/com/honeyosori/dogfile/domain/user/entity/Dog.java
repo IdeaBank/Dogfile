@@ -22,9 +22,10 @@ public class Dog {
 
     @Getter
     @Setter
-    @JoinColumn(nullable = false, name = "dogfile_user_id")
-    @ManyToOne
-    private User dogfileUserId;
+
+    @Column(nullable = false, name = "dogfile_user_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private User dogfileUser;
 
     @Getter
     @Setter
@@ -34,7 +35,8 @@ public class Dog {
     @Getter
     @Setter
     @Column(nullable = false)
-    private Long breed;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private DogBreed breed;
 
     @Getter
     @Setter
@@ -63,14 +65,14 @@ public class Dog {
     private LocalDateTime withdrawRequestAt;
 
     public Dog(
-            @RequestParam User dogfileUserId,
+            @RequestParam User dogfileUser,
             @RequestParam String name,
-            @RequestParam Long breed,
+            @RequestParam DogBreed breed,
             @RequestParam Date birthday,
             @RequestParam Size size,
             String dogImage
             ) {
-        this.dogfileUserId = dogfileUserId;
+        this.dogfileUser = dogfileUser;
         this.name = name;
         this.breed = breed;
         this.birthday = birthday;
