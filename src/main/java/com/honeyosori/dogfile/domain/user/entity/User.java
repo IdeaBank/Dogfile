@@ -69,11 +69,6 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-//    @Getter
-//    @Setter
-//    @Column
-//    private String address; 주소삭제
-
     @Getter
     @Setter
     @CreationTimestamp
@@ -91,18 +86,20 @@ public class User {
     @Column(name = "withdraw_request_at")
     private LocalDateTime withdrawRequestAt;
 
-    public User(String email, String password, String realName, GenderType gender, Date birthday, String phoneNumber, String profileImageUrl) {
-        this.email = email;
+    public User(String accountName, String password, String realName, GenderType gender, Date birthday, String phoneNumber, String email) {
+        this.accountName = accountName;
         this.password = password;
         this.realName = realName;
         this.gender = gender;
         this.birthday = birthday;
         this.phoneNumber = phoneNumber;
-        this.profileImageUrl = profileImageUrl; // TODO: 유저 등록 시 프로필 이미지 없으면 default 이미지 url을 저장하도록 하는 if-else 추가.
+        this.email = email;
+        this.profileImageUrl = "default"; // TODO: 유저 등록 시 프로필 이미지 없으면 default 이미지 url을 저장하도록 하는 if-else 추가.
         this.role = Role.USER;
         this.createdAt = LocalDateTime.now();
         this.deleted = 0;
     }
+
 
     public User(String email) {
         this.email = email;
@@ -113,7 +110,6 @@ public class User {
         this.gender = createKakaoAccountDto.gender();
         this.birthday = createKakaoAccountDto.birthday();
         this.phoneNumber = createKakaoAccountDto.phoneNumber();
-//        this.address = createKakaoAccountDto.address(); // 주소 삭제.
         this.profileImageUrl = createKakaoAccountDto.profileImageUrl();
         this.role = User.Role.USER;
         this.createdAt = LocalDateTime.now();
