@@ -17,7 +17,7 @@ public record UserInfoDto(String id,
                           String email,
                           User.Role role,
                           LocalDateTime createdAt,
-                          Short deleted,
+                          Boolean deleted,
                           LocalDateTime withdrawRequestAt) {
     public static UserInfoDto of(User user) {
         return new UserInfoDto(

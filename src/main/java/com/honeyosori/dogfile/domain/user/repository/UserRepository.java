@@ -16,6 +16,6 @@ public interface UserRepository extends JpaRepository<User, String> {
     Optional<User> findByAccountName(String accountName);
     Optional<User> findByPhoneNumber(String phoneNumber);
     Optional<List<User>> findByAccountNameStartingWith(String partialAccountName);
-    @Query("SELECT u FROM User u WHERE u.deleted = 1")
+    @Query("SELECT u FROM User u WHERE u.deleted = 0 ")
     List<User> findByDeleted();
 }
