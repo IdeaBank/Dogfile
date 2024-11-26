@@ -56,27 +56,11 @@ public class DogService {
                 createUserDogDto.dogImage()
         );
 
-//        dogRepository.save(dog);
+        dogRepository.save(dog);
 
         return new BaseResponse<>(BaseResponseStatus.CREATED, dog);
     }
 
-    /*
-    Todo : 회원 반려견 정보 변경하기
-    이름, 생일 등 정보 변경
-
-    given)
-    DB에 저장된 dog
-    변경가능한 것)
-    name, breed, size, birthday, dog_image
-    이 중 부분적으로 입력을 받음
-
-    when)
-    정보 수정
-
-    then)
-    입력받은 새로운 데이터가 저장됨
-     */
     @Transactional
     public BaseResponse<?> updateDog(UpdateDogDto updateDogDto, String id) {
         Dog dog = this.dogRepository.findById(id).orElse(null);
@@ -103,23 +87,6 @@ public class DogService {
 
         return new BaseResponse<>(BaseResponseStatus.UPDATED, updateDogDto);
     }
-
-    /*
-    Todo : 회원 반려견 정보 검색하기
-    검색 키에 따라 index 생성 및 회원 검색
-
-    given)
-    DB에 저장된 dog
-
-    when)
-    1. id로 검색
-    2. dogfile user id로 검색
-    3. dogfile user id와 name으로 검색
-
-    then)
-    있으면 dog 반환
-    없으면 error handling
-     */
 
     public BaseResponse<?> findDogById(String id) {
         Dog dog = this.dogRepository.findById(id).orElse(null);
