@@ -3,11 +3,9 @@ package com.honeyosori.dogfile.domain.user.dto;
 import com.honeyosori.dogfile.domain.user.entity.Dog;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
-import jakarta.validation.constraints.Size;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
-import java.util.UUID;
 
 public record CreateUserDogDto (
         @NotNull String email,

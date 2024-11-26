@@ -4,7 +4,7 @@ import com.honeyosori.dogfile.domain.user.entity.User;
 import jakarta.validation.constraints.Past;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import java.sql.Date;
+import java.util.Date;
 import java.time.LocalDateTime;
 
 public record UserInfoDto(String id,

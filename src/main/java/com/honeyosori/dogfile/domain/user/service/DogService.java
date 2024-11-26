@@ -1,7 +1,6 @@
 package com.honeyosori.dogfile.domain.user.service;
 
-import com.honeyosori.dogfile.domain.user.dto.CreateUserDogDto;
-import com.honeyosori.dogfile.domain.user.dto.UserDogDto;
+import com.honeyosori.dogfile.domain.user.dto.*;
 import com.honeyosori.dogfile.domain.user.entity.Dog;
 import com.honeyosori.dogfile.domain.user.entity.DogBreed;
 import com.honeyosori.dogfile.domain.user.entity.User;
@@ -11,18 +10,27 @@ import com.honeyosori.dogfile.domain.user.repository.UserRepository;
 import com.honeyosori.dogfile.global.response.BaseResponse;
 import com.honeyosori.dogfile.global.response.BaseResponseStatus;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
+@Service
 public class DogService {
-    private UserRepository userRepository;
-    private DogRepository dogRepository;
-    private DogBreedRepository dogBreedRepository;
+    private final UserRepository userRepository;
+    private final DogRepository dogRepository;
+    private final DogBreedRepository dogBreedRepository;
+
+    @Autowired
+    public DogService(UserRepository userRepository, DogRepository dogRepository, DogBreedRepository dogBreedRepository) {
+        this.userRepository = userRepository;
+        this.dogRepository = dogRepository;
+        this.dogBreedRepository = dogBreedRepository;
+    }
 
     public BaseResponse<?> getUserDogs(String dogfileUserEmail) {
-        List<Dog> dogs = dogRepository.findAllByDogfileUserEmail(dogfileUserEmail);
+        List<Dog> dogs = this.dogRepository.findAllByDogfileUserEmail(dogfileUserEmail);
         if (dogs == null) {
             return new BaseResponse<>(BaseResponseStatus.DOG_NOT_FOUND, null);
         }
@@ -30,10 +38,12 @@ public class DogService {
                 .map(UserDogDto::of)
                 .toList();
     }
+
     public BaseResponse<?> getAllDogBreeds() {
-        List<DogBreed> dogBreeds = dogBreedRepository.findAll();
+        List<DogBreed> dogBreeds = this.dogBreedRepository.findAll();
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, dogBreeds);
     }
+
     public BaseResponse<?> createUserDog(CreateUserDogDto createUserDogDto) {
         User dogfileUser = this.userRepository.findUserByEmail(createUserDogDto.email()).orElse(null);
         DogBreed dogBreed = this.dogBreedRepository.findById(createUserDogDto.dogBreedId());
@@ -45,7 +55,75 @@ public class DogService {
                 createUserDogDto.size(),
                 createUserDogDto.dogImage()
         );
+
+        dogRepository.save(dog);
+
         return new BaseResponse<>(BaseResponseStatus.CREATED, dog);
+    }
+
+    @Transactional
+    public BaseResponse<?> updateDog(UpdateDogDto updateDogDto, String id) {
+        Dog dog = this.dogRepository.findById(id).orElse(null);
+
+        if (dog == null || dog.getDeleted()) {
+            return new BaseResponse<>(BaseResponseStatus.DOG_NOT_FOUND, null);
+        }
+
+        if (updateDogDto.dogfileUser() != null) {
+            dog.setDogfileUser(updateDogDto.dogfileUser());
+        }
+
+        if (updateDogDto.name() != null) {
+            dog.setName(updateDogDto.name());
+        }
+
+        if (updateDogDto.size() != null) {
+            dog.setSize(updateDogDto.size());
+        }
+
+        if (updateDogDto.dogImage() != null) {
+            dog.setDogImage(updateDogDto.dogImage());
+        }
+
+        return new BaseResponse<>(BaseResponseStatus.UPDATED, updateDogDto);
+    }
+
+    public BaseResponse<?> findDogById(String id) {
+        Dog dog = this.dogRepository.findById(id).orElse(null);
+
+        if (dog == null || dog.getDeleted()) {
+            return new BaseResponse<>(BaseResponseStatus.DOG_NOT_FOUND, null);
+        }
+
+        DogInfoDto dogInfoDto = DogInfoDto.of(dog);
+
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, dogInfoDto);
+    }
+
+    public BaseResponse<?> findDogByDogFileUserId(String dogFileUserId) {
+        List<Dog> dogs = this.dogRepository.findAllByDogfileUserId(dogFileUserId);
+
+        if (dogs.isEmpty() || dogs.stream().allMatch(Dog::getDeleted)) {
+            return new BaseResponse<>(BaseResponseStatus.DOG_NOT_FOUND, null);
+        }
+
+        List<DogInfoDto> dogInfoDtos = dogs.stream()
+                .map(DogInfoDto::of)
+                .toList();
+
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, dogInfoDtos);
+    }
+
+    public BaseResponse<?> findDogByDogFileUserIdAndName(String dogfileUserId, String name) {
+        Dog dog = this.dogRepository.findByDogfileUserIdAndName(dogfileUserId, name);
+
+        if (dog == null || dog.getDeleted()) {
+            return new BaseResponse<>(BaseResponseStatus.DOG_NOT_FOUND, null);
+        }
+
+        DogInfoDto dogInfoDto = DogInfoDto.of(dog);
+
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, dogInfoDto);
     }
 
     @Transactional
