@@ -8,9 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.type.descriptor.jdbc.TinyIntJdbcType;
 
-import java.sql.Date;
+import java.util.Date;
 import java.time.LocalDateTime;
 
 @Entity

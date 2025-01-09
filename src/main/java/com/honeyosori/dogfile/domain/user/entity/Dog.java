@@ -5,12 +5,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDateTime;
 import java.util.Date;
-import java.util.Optional;
-import java.util.UUID;
 
 @Getter
 @Entity
