@@ -14,21 +14,17 @@ import com.honeyosori.dogfile.global.response.BaseResponse;
 import com.honeyosori.dogfile.global.response.BaseResponseStatus;
 import com.honeyosori.dogfile.global.utility.JwtUtility;
 import jakarta.transaction.Transactional;
-import jakarta.validation.constraints.Past;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.reactive.function.client.WebClient;
 
-import java.sql.Date;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +33,7 @@ import java.util.Objects;
 
 @Transactional
 @Service
+@Slf4j
 public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
@@ -50,22 +47,7 @@ public class UserService {
         this.redisTemplate = redisTemplate;
     }
 
-    private void sendWithdrawRequestToDogchat(String userId) {
-        WebClient webClient = WebClient.builder()
-                .baseUrl(DogUrl.DOGCHAT)
-                .build();
-
-        WebClient.ResponseSpec responseSpec = webClient.delete()
-                .uri(String.format(DogUrl.DOGCHAT_WITHDRAW, userId))
-                .headers(httpHeaders -> {
-                    httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-                })
-                .retrieve();
-
-        String result = responseSpec.bodyToMono(String.class).block();
-    } // TODO: 이거  수정 바람.
-
-    private void sendRegisterRequestToDogus(CreateUserDto createUserDto) {
+    private void sendRegisterRequestToDogus(CreateDogusUserDto createDogusUserDto) {
         RestClient restClient = RestClient.builder()
                 .baseUrl(DogUrl.DOGUS)
                 .build();
@@ -73,10 +55,10 @@ public class UserService {
         ObjectMapper objectMapper = new ObjectMapper();
 
         try {
-            String jsonString = objectMapper.writeValueAsString(createUserDto);
-            System.out.println(jsonString);
+            String jsonString = objectMapper.writeValueAsString(createDogusUserDto);
+            log.info("[DOGUS] Sending {}", jsonString);
 
-            RestClient.ResponseSpec responseSpec = restClient.post()
+            String result = restClient.post()
                     .uri(DogUrl.DOGUS_REGISTER)
                     .headers(httpHeaders -> {
                         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
@@ -85,33 +67,51 @@ public class UserService {
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, (r, e) -> {
                         throw new OAuthException(BaseResponseStatus.INVALID_JWT_TOKEN);
-                    });
-
-            String result = responseSpec
+                    })
                     .body(String.class);
+
+            log.info("[DOGUS] Response {}", result);
 
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
     }
 
-    private void sendRegisterRequestToDogchat(String userId, String email) {
-        WebClient webClient = WebClient.builder()
-                .baseUrl(DogUrl.DOGCHAT)
+    private void sendRegisterRequestToDogclub(CreateDogclubUserDto createDogclubUserDto) {
+        RestClient restClient = RestClient.builder()
+                .baseUrl(DogUrl.DOGUS)
                 .build();
 
-        WebClient.ResponseSpec responseSpec = webClient.post()
-                .uri(String.format(DogUrl.DOGCHAT_REGISTER, userId, email))
-                .headers(httpHeaders -> {
-                    httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-                })
-                .retrieve();
+        ObjectMapper objectMapper = new ObjectMapper();
 
-        String result = responseSpec.bodyToMono(String.class).block();
+        try {
+            String jsonString = objectMapper.writeValueAsString(createDogclubUserDto);
+            log.info("[DOGCLUB] Sending {}", jsonString);
+
+            String result = restClient.post()
+                    .uri(DogUrl.DOGCLUB_REGISTER)
+                    .headers(httpHeaders -> {
+                        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+                    })
+                    .body(jsonString)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, (r, e) -> {
+                        throw new OAuthException(BaseResponseStatus.INVALID_JWT_TOKEN);
+                    })
+                    .body(String.class);
+
+            log.info("[DOGCLUB] Response {}", result);
+
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
     }
 
+    // TODO: 트랜잭션 롤백, SAGA 패턴 적용(보상 트랜잭션 적용)
+    @Transactional
     public BaseResponse<?> register(CreateUserDto createUserDto) {
         String email = createUserDto.email();
+        String profileImageUrl = "default";
 
         User user = this.userRepository.findUserByEmail(email).orElse(null);
 
@@ -125,17 +125,33 @@ public class UserService {
 
         this.userRepository.save(newUser);
 
-// TODO: interlock other servers & set transaction
-//        try {
-//            sendRegisterRequestToDogus(createUserDto);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        try {
-//            sendRegisterRequestToDogchat(newUser.getId(), email);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
+        try {
+            CreateDogusUserDto createDogusUserDto = CreateDogusUserDto.builder()
+                    .dogfileUserId(newUser.getId())
+                    .accountName(createUserDto.accountName())
+                    .profileImageUrl(profileImageUrl)
+                    .build();
+
+            log.info("[DOGUS] Send User Create Request");
+            sendRegisterRequestToDogus(createDogusUserDto);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("DOGUS 등록 실패", e);
+        }
+
+        try {
+            CreateDogclubUserDto createDogclubUserDto = CreateDogclubUserDto.builder()
+                    .dogfileUserId(newUser.getId())
+                    .accountName(createUserDto.accountName())
+                    .profileImageUrl(profileImageUrl)
+                    .build();
+
+            log.info("[DOGCLUB] Send User Create Request");
+            sendRegisterRequestToDogclub(createDogclubUserDto);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("DOGCLUB 등록 실패", e);
+        }
 
         return new BaseResponse<>(BaseResponseStatus.CREATED, createUserDto);
     }

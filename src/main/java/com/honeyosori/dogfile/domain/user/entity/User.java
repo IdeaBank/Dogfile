@@ -104,6 +104,7 @@ public class User {
         this.email = email;
     }
 
+    // TODO: 여기엔 AccountName이 없음
     public void registerKakaoUser(CreateKakaoAccountDto createKakaoAccountDto) {
         this.realName = createKakaoAccountDto.realName();
         this.gender = createKakaoAccountDto.gender();

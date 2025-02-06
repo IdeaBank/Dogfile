@@ -5,11 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.honeyosori.dogfile.domain.oauth.component.KakaoOAuthComponent;
 import com.honeyosori.dogfile.domain.oauth.constant.KakaoUrl;
 import com.honeyosori.dogfile.domain.oauth.constant.TokenType;
-import com.honeyosori.dogfile.domain.oauth.dto.CreateDogusAccountDto;
 import com.honeyosori.dogfile.domain.oauth.dto.CreateKakaoAccountDto;
 import com.honeyosori.dogfile.domain.oauth.dto.KakaoTokenResponse;
 import com.honeyosori.dogfile.domain.oauth.dto.KakaoUserInformation;
 import com.honeyosori.dogfile.domain.oauth.exception.OAuthException;
+import com.honeyosori.dogfile.domain.user.dto.CreateDogclubUserDto;
+import com.honeyosori.dogfile.domain.user.dto.CreateDogusUserDto;
 import com.honeyosori.dogfile.domain.user.entity.User;
 import com.honeyosori.dogfile.domain.user.repository.UserRepository;
 import com.honeyosori.dogfile.global.constant.*;
@@ -17,7 +18,6 @@ import com.honeyosori.dogfile.global.response.BaseResponse;
 import com.honeyosori.dogfile.global.response.BaseResponseStatus;
 import com.honeyosori.dogfile.global.utility.JwtUtility;
 import jakarta.servlet.http.HttpServletRequest;
-import org.apache.coyote.Response;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -27,7 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.reactive.function.BodyInserters;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -145,13 +144,13 @@ public class KakaoOAuthService {
         return jwtUtility.generateJwtResponse(claims);
     }
 
-    private void sendRegisterRequestToDogus(CreateDogusAccountDto createDogusAccountDto) {
+    private void sendRegisterRequestToDogus(CreateDogusUserDto createDogusUserDto) {
         RestClient restClient = RestClient.builder().baseUrl(DogUrl.DOGUS).build();
 
         ObjectMapper objectMapper = new ObjectMapper();
 
         try {
-            String dogusAccountInformation = objectMapper.writeValueAsString(createDogusAccountDto);
+            String dogusAccountInformation = objectMapper.writeValueAsString(createDogusUserDto);
 
             RestClient.ResponseSpec responseSpec = restClient.post().uri(DogUrl.DOGUS_REGISTER).headers(httpHeaders -> {
                 httpHeaders.setContentType(MediaType.APPLICATION_JSON);
@@ -164,17 +163,26 @@ public class KakaoOAuthService {
         }
     }
 
-    private void sendRegisterRequestToDogchat(String userId, String email) {
-        RestClient restClient = RestClient.builder().baseUrl(DogUrl.DOGCHAT).build();
+    private void sendRegisterRequestToDogclub(CreateDogclubUserDto createDogclubUserDto) {
+        RestClient restClient = RestClient.builder().baseUrl(DogUrl.DOGCLUB).build();
 
-        RestClient.ResponseSpec responseSpec = restClient.post().uri(String.format(DogUrl.DOGCHAT_REGISTER, userId, email)).headers(httpHeaders -> {
-            httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-        }).retrieve();
+        ObjectMapper objectMapper = new ObjectMapper();
 
-        String result = responseSpec.body(String.class);
-        System.out.println(result);
+        try {
+            String dogusAccountInformation = objectMapper.writeValueAsString(createDogclubUserDto);
+
+            RestClient.ResponseSpec responseSpec = restClient.post().uri(DogUrl.DOGCLUB_REGISTER).headers(httpHeaders -> {
+                httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+            }).body(dogusAccountInformation).retrieve();
+
+            String result = responseSpec.body(String.class);
+
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
     }
 
+    // TODO: AccountName 설정해주기
     public BaseResponse<?> registerKakaoAccount(String email, CreateKakaoAccountDto createKakaoAccountDto) {
         User user = this.userRepository.getUserByEmail(email);
 
@@ -188,14 +196,25 @@ public class KakaoOAuthService {
         this.userRepository.save(user);
 
         try {
-            CreateDogusAccountDto createDogusAccountDto = createKakaoAccountDto.toDogusAccount(email);
-            sendRegisterRequestToDogus(createDogusAccountDto);
+            CreateDogusUserDto createDogusUserDto = CreateDogusUserDto.builder()
+                    .dogfileUserId(user.getId())
+                    .accountName(email)
+                    .profileImageUrl(createKakaoAccountDto.profileImageUrl())
+                    .build();
+
+            sendRegisterRequestToDogus(createDogusUserDto);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         try {
-            sendRegisterRequestToDogchat(user.getId(), email);
+            CreateDogclubUserDto createDogclubUserDto = CreateDogclubUserDto.builder()
+                    .dogfileUserId(user.getId())
+                    .accountName(email)
+                    .profileImageUrl(createKakaoAccountDto.profileImageUrl())
+                    .build();
+
+            sendRegisterRequestToDogclub(createDogclubUserDto);
         } catch (Exception e) {
             e.printStackTrace();
         }
