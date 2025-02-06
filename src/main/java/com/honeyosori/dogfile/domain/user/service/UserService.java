@@ -6,10 +6,7 @@ import com.honeyosori.dogfile.domain.oauth.exception.OAuthException;
 import com.honeyosori.dogfile.domain.user.dto.*;
 import com.honeyosori.dogfile.domain.user.entity.User;
 import com.honeyosori.dogfile.domain.user.entity.User.Role;
-import com.honeyosori.dogfile.domain.user.entity.User.UserStatus;
-import com.honeyosori.dogfile.domain.user.entity.WithdrawWaiting;
 import com.honeyosori.dogfile.domain.user.repository.UserRepository;
-import com.honeyosori.dogfile.domain.user.repository.WithdrawWaitingRepository;
 import com.honeyosori.dogfile.global.constant.DogUrl;
 import com.honeyosori.dogfile.global.constant.JwtOrigin;
 import com.honeyosori.dogfile.global.constant.PayloadData;
@@ -17,33 +14,40 @@ import com.honeyosori.dogfile.global.response.BaseResponse;
 import com.honeyosori.dogfile.global.response.BaseResponseStatus;
 import com.honeyosori.dogfile.global.utility.JwtUtility;
 import jakarta.transaction.Transactional;
+import jakarta.validation.constraints.Past;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Transactional
 @Service
 public class UserService {
     private final UserRepository userRepository;
-    private final WithdrawWaitingRepository withdrawWaitingRepository;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
     private final JwtUtility jwtUtility;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Autowired
-    public UserService(UserRepository userRepository, WithdrawWaitingRepository withdrawWaitingRepository, JwtUtility jwtUtility) {
+    public UserService(UserRepository userRepository, JwtUtility jwtUtility, RedisTemplate<String, String> redisTemplate) {
         this.userRepository = userRepository;
-        this.withdrawWaitingRepository = withdrawWaitingRepository;
         this.jwtUtility = jwtUtility;
+        this.redisTemplate = redisTemplate;
     }
 
     private void sendWithdrawRequestToDogchat(String userId) {
@@ -59,7 +63,7 @@ public class UserService {
                 .retrieve();
 
         String result = responseSpec.bodyToMono(String.class).block();
-    }
+    } // TODO: 이거  수정 바람.
 
     private void sendRegisterRequestToDogus(CreateUserDto createUserDto) {
         RestClient restClient = RestClient.builder()
@@ -117,66 +121,63 @@ public class UserService {
 
         User newUser = createUserDto.toUser();
         newUser.setRole(Role.USER);
-        newUser.setUserStatus(UserStatus.PUBLIC);
         newUser.setPassword(encoder.encode(newUser.getPassword()));
 
         this.userRepository.save(newUser);
 
-        try {
-            sendRegisterRequestToDogus(createUserDto);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        try {
-            sendRegisterRequestToDogchat(newUser.getId(), email);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+// TODO: interlock other servers & set transaction
+//        try {
+//            sendRegisterRequestToDogus(createUserDto);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        try {
+//            sendRegisterRequestToDogchat(newUser.getId(), email);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
 
         return new BaseResponse<>(BaseResponseStatus.CREATED, createUserDto);
     }
 
+    @Transactional
     public BaseResponse<?> updateUser(UpdateUserDto updateUserDto, String email) {
+        // TODO: Create DB Index of email
         User user = this.userRepository.getUserByEmail(email);
 
-        if (user == null) {
+        if (user == null || user.getDeleted()) {
             return new BaseResponse<>(BaseResponseStatus.INVALID_JWT_TOKEN, null);
+        }
+
+        if (updateUserDto.accountName() != null) {
+            user.setAccountName(updateUserDto.accountName());
         }
 
         if (updateUserDto.password() != null) {
             user.setPassword(encoder.encode(updateUserDto.password()));
         }
 
-        if (updateUserDto.profileImageUrl() != null) {
-            user.setProfileImageUrl(updateUserDto.profileImageUrl());
+        if (updateUserDto.realName() != null) {
+            user.setRealName(updateUserDto.realName());
+        }
+
+        if (updateUserDto.gender() != null) {
+            user.setGender(updateUserDto.gender());
         }
 
         if (updateUserDto.birthday() != null) {
             user.setBirthday(updateUserDto.birthday());
         }
 
-        if (updateUserDto.phoneNumber() != null) {
-            user.setPhoneNumber(updateUserDto.phoneNumber());
+        if (updateUserDto.profileImageUrl() != null) {
+            user.setProfileImageUrl(updateUserDto.profileImageUrl());
         }
 
-        this.userRepository.save(user);
+        if (updateUserDto.email() != null) {
+            user.setEmail(updateUserDto.email());
+        }
 
         return new BaseResponse<>(BaseResponseStatus.UPDATED, updateUserDto);
-    }
-
-    public BaseResponse<?> changeUserStatus(UpdateUserStatusDto updateUserStatusDto, String email) {
-        User user = this.userRepository.getUserByEmail(email);
-        UserStatus userStatus = updateUserStatusDto.userStatus();
-
-        if (userStatus == UserStatus.PUBLIC || userStatus == UserStatus.PRIVATE) {
-            user.setUserStatus(userStatus);
-            this.userRepository.save(user);
-
-            return new BaseResponse<>(BaseResponseStatus.SUCCESS, null);
-        }
-
-        return new BaseResponse<>(BaseResponseStatus.REJECTED, "cannot assign value");
     }
 
     public ResponseEntity<?> login(LoginDto loginDto) {
@@ -185,16 +186,8 @@ public class UserService {
 
         User user = this.userRepository.findUserByEmail(email).orElse(null);
 
-        if (user == null) {
+        if (user == null || user.getDeleted()) {
             return BaseResponse.getResponseEntity(BaseResponseStatus.USER_NOT_FOUND);
-        }
-
-        if (user.getUserStatus() == UserStatus.WITHDRAW_REQUESTED) {
-            return BaseResponse.getResponseEntity(BaseResponseStatus.WITHDRAW_REQUESTED);
-        }
-
-        if (user.getUserStatus() == UserStatus.WITHDRAWN) {
-            return BaseResponse.getResponseEntity(BaseResponseStatus.WITHDRAWN);
         }
 
         if (encoder.matches(password, user.getPassword())) {
@@ -209,35 +202,69 @@ public class UserService {
         return BaseResponse.getResponseEntity(BaseResponseStatus.WRONG_PASSWORD);
     }
 
-    public void deleteUser(String email) {
-        User user = this.userRepository.getUserByEmail(email);
+    public ResponseEntity<?> logout(String email) {
+        User user = this.userRepository.findUserByEmail(email).orElse(null);
 
-        user.resetUser();
-        user.setUserStatus(UserStatus.WITHDRAWN);
-
-        this.userRepository.save(user);
-    }
-
-    public BaseResponse<?> processWithdrawRequest(String email) {
-        User user = this.userRepository.getUserByEmail(email);
-
-        if (this.withdrawWaitingRepository.existsByUserId(user.getId())) {
-            return new BaseResponse<>(BaseResponseStatus.ALREADY_WAITING_FOR_WITHDRAW, null);
+        if (user == null || user.getDeleted()) {
+            return BaseResponse.getResponseEntity(BaseResponseStatus.USER_NOT_FOUND);
         }
 
-        WithdrawWaiting withdrawWaiting = new WithdrawWaiting(user);
-        this.withdrawWaitingRepository.save(withdrawWaiting);
+        ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
+        valueOperations.set(email, "");
 
-        user.setUserStatus(UserStatus.WITHDRAW_REQUESTED);
-        this.userRepository.save(user);
+        return BaseResponse.getResponseEntity(BaseResponseStatus.SUCCESS);
+    }
+
+    public ResponseEntity<?> refresh(String email, String refreshToken) {
+        ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
+        String whitelistToken = valueOperations.get(email);
+
+        if (Objects.equals(whitelistToken, "")) {
+            return BaseResponse.getResponseEntity(BaseResponseStatus.UNAUTHENTICATED);
+        } else if (!Objects.equals(whitelistToken, refreshToken)) {
+            return BaseResponse.getResponseEntity(BaseResponseStatus.EXPIRED_JWT_TOKEN);
+        }
+
+        Map<String, String> claims = new HashMap<>();
+
+        claims.put(PayloadData.ORIGIN, JwtOrigin.LOCAL.getName());
+        claims.put(PayloadData.EMAIL, email);
+
+        return jwtUtility.generateJwtResponse(claims);
+    }
+
+    @Transactional
+    public BaseResponse<?> deleteUser(String email) {
+        User user = this.userRepository.getUserByEmail(email);
+
+        user.setDeleted(true);
+
+        user.setWithdrawRequestAt(LocalDateTime.now());
 
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, null);
+    }
+
+    @Transactional
+    public BaseResponse<?> cancelDeletion(String email) {
+        User user = this.userRepository.getUserByEmail(email);
+
+        user.setDeleted(false);
+        user.setWithdrawRequestAt(null);
+
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, null);
+    }
+
+    public BaseResponse<?> getWithdrawingUser() {
+        // TODO: Create DB Index of Deleted
+        List<User> user = this.userRepository.findByDeleted();
+
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, user);
     }
 
     public BaseResponse<?> getUserInfo(String email) {
         User user = this.userRepository.findUserByEmail(email).orElse(null);
 
-        if (user == null) {
+        if (user == null || user.getDeleted()) {
             return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
         }
 
@@ -255,12 +282,69 @@ public class UserService {
     public BaseResponse<?> getUserLoginInfo(String email) {
         User user = this.userRepository.findUserByEmail(email).orElse(null);
 
-        if (user == null) {
+        if (user == null || user.getDeleted()) {
             return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
         }
 
         UserLoginInfoDto userLoginInfoDto = UserLoginInfoDto.of(user);
 
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, userLoginInfoDto);
+    }
+
+    public BaseResponse<?> findUserById(String id) {
+        User user = this.userRepository.findById(id).orElse(null);
+
+        if (user == null || user.getDeleted()) {
+            return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
+        }
+
+        UserInfoDto userInfoDto = UserInfoDto.of(user);
+
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, userInfoDto);
+    }
+
+    public BaseResponse<?> findUserByAccountName(String accountName) {
+        // TODO: Create DB Index of Account Name
+        User user = this.userRepository.findByAccountName(accountName).orElse(null);
+
+        if (user == null || user.getDeleted()) {
+            return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
+        }
+
+        UserInfoDto userInfoDto = UserInfoDto.of(user);
+
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, userInfoDto);
+    }
+
+    public BaseResponse<?> findUserByPartialAccountName(String partialAccountName) {
+        // Only starting with like can use a normal index
+        // TODO: Create Full-Text Index
+        List<User> user = this.userRepository.findByAccountNameStartingWith(partialAccountName).orElse(null);
+
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, user.stream().map(UserInfoDto::of));
+    }
+
+    public BaseResponse<?> findUserByEmail(String email) {
+        User user = this.userRepository.findUserByEmail(email).orElse(null);
+
+        if (user == null || user.getDeleted()) {
+            return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
+        }
+
+        UserInfoDto userInfoDto = UserInfoDto.of(user);
+
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, userInfoDto);
+    }
+
+    public BaseResponse<?> findUserByPhoneNumber(String phoneNumber) {
+        User user = this.userRepository.findByPhoneNumber(phoneNumber).orElse(null);
+
+        if (user == null || user.getDeleted()) {
+            return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
+        }
+
+        UserInfoDto userInfoDto = UserInfoDto.of(user);
+
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, userInfoDto);
     }
 }

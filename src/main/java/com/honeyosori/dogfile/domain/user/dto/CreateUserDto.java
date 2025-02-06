@@ -6,19 +6,16 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import java.sql.Date;
+import java.util.Date;
 
-public record CreateUserDto(@NotNull @Email String email,
+public record CreateUserDto(@NotNull String accountName,
                             @NotNull String password,
                             @NotNull String realName,
                             @NotNull User.GenderType gender,
                             @DateTimeFormat(pattern = "yyyy-MM-dd") @Past @NotNull Date birthday,
                             @NotNull String phoneNumber,
-                            @NotNull String address,
-                            @NotNull String profileImageUrl,
-                            String preferCategory,
-                            String username) {
+                            @NotNull @Email String email) {
     public User toUser() {
-        return new User(email, password, realName, gender, birthday, phoneNumber, address, profileImageUrl);
+        return new User(accountName, password, realName, gender, birthday, phoneNumber, email);
     }
 }
