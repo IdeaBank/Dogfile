@@ -6,6 +6,7 @@ public enum BaseResponseStatus {
     /**
      * 2XX
      */
+    HEALTHZ(true, HttpStatus.OK.value(), "Dogfile v0.0.1 is healthy"),
     SUCCESS(true, HttpStatus.OK.value(), "Request succeeded"),
     UPDATED(true, HttpStatus.OK.value(), "Update succeeded"),
     CREATED(true, HttpStatus.CREATED.value(), "Create succeeded"),

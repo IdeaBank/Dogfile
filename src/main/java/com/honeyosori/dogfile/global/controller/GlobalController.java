@@ -10,6 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class GlobalController {
     @GetMapping("/healthz")
     public ResponseEntity<?> checkServerOnline() {
-        return BaseResponse.getResponseEntity(BaseResponseStatus.SUCCESS);
+        return BaseResponse.getResponseEntity(BaseResponseStatus.HEALTHZ);
     }
 }

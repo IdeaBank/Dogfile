@@ -66,6 +66,7 @@ public class UserService {
                     .body(jsonString)
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, (r, e) -> {
+                        log.error("{} {}", e.getStatusCode(), e.getBody());
                         throw new OAuthException(BaseResponseStatus.INVALID_JWT_TOKEN);
                     })
                     .body(String.class);
@@ -79,7 +80,7 @@ public class UserService {
 
     private void sendRegisterRequestToDogclub(CreateDogclubUserDto createDogclubUserDto) {
         RestClient restClient = RestClient.builder()
-                .baseUrl(DogUrl.DOGUS)
+                .baseUrl(DogUrl.DOGCLUB)
                 .build();
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -96,6 +97,7 @@ public class UserService {
                     .body(jsonString)
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, (r, e) -> {
+                        log.error("{} {}", e.getStatusCode(), e.getBody());
                         throw new OAuthException(BaseResponseStatus.INVALID_JWT_TOKEN);
                     })
                     .body(String.class);

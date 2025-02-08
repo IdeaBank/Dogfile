@@ -3,7 +3,6 @@ package com.honeyosori.dogfile.domain.user.controller;
 import com.honeyosori.dogfile.domain.user.dto.CreateUserDto;
 import com.honeyosori.dogfile.domain.user.dto.LoginDto;
 import com.honeyosori.dogfile.domain.user.dto.UpdateUserDto;
-import com.honeyosori.dogfile.domain.user.service.DogService;
 import com.honeyosori.dogfile.domain.user.service.UserService;
 import com.honeyosori.dogfile.global.constant.CustomHeader;
 import com.honeyosori.dogfile.global.response.BaseResponse;
@@ -16,8 +15,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/user")
 public class UserController {
     private UserService userService;
-    private DogService dogService;
-
     @Autowired
     public void setUserService(UserService userService) {
         this.userService = userService;
@@ -97,10 +94,5 @@ public class UserController {
     @GetMapping("/login-info")
     public ResponseEntity<?> getLoginInfo(@RequestHeader(CustomHeader.EMAIL) String email) {
         return BaseResponse.getResponseEntity(this.userService.getUserLoginInfo(email));
-    }
-
-    @GetMapping("/get-dogs")
-    public ResponseEntity<?> getUserDogs(@RequestParam("email") String email) {
-        return BaseResponse.getResponseEntity(this.dogService.getUserDogs(email));
     }
 }
