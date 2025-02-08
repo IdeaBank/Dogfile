@@ -14,7 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/v1/oauth")
+@RequestMapping("/api/v1")
 public class OAuthController {
     private final KakaoOAuthService kakaoOAuthService;
 
