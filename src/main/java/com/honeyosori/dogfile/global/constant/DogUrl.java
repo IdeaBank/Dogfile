@@ -6,5 +6,8 @@ public final class DogUrl {
 
     public static final String DOGFILE_OAUTH = "/dogfile/v1/oauth/kakao/oauth";
     public static final String DOGUS_REGISTER = "/api/v1/user";
+    public static final String DOGUS_DELETE = "/api/v1/user/by-dogfile-user/";
     public static final String DOGCLUB_REGISTER = "/api/v1/user";
+    public static final String DOGUS_UPDATE = "/api/v1/user/by-dogfile-user/";
+    public static final String DOGCLUB_UPDATE = "/api/v1/user/by-dogfile-user/";
 }

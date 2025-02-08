@@ -8,13 +8,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.util.Date;
 import java.time.LocalDateTime;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "users")
+@Table(name = "users", indexes = {
+        @Index(name = "idx_email", columnList = "email", unique = true),
+        @Index(name = "idx_account_name", columnList = "accountName", unique = true)
+})
 public class User {
     @Getter
     @Id
@@ -59,7 +63,7 @@ public class User {
 
     @Getter
     @Setter
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
     private String email;
 
     @Getter
@@ -70,20 +74,18 @@ public class User {
 
     @Getter
     @CreationTimestamp
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Getter
-    @Setter
-    @Column(nullable = false, columnDefinition = "TINYINT(1)")
-    private Boolean deleted;
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
 
-
-    @Timestamp
     @Getter
     @Setter
     @Column
-    private LocalDateTime withdrawRequestAt = null;
+    private LocalDateTime deletedAt;
 
     public User(String accountName, String password, String realName, GenderType gender, Date birthday, String phoneNumber, String email) {
         this.accountName = accountName;
@@ -95,8 +97,6 @@ public class User {
         this.email = email;
         this.profileImageUrl = "default"; // TODO: 유저 등록 시 프로필 이미지 없으면 default 이미지 url을 저장하도록 하는 if-else 추가.
         this.role = Role.USER;
-        this.createdAt = LocalDateTime.now();
-        this.deleted = false;
     }
 
 
@@ -104,16 +104,15 @@ public class User {
         this.email = email;
     }
 
-    // TODO: 여기엔 AccountName이 없음
     public void registerKakaoUser(CreateKakaoAccountDto createKakaoAccountDto) {
+        this.accountName = createKakaoAccountDto.accountName();
         this.realName = createKakaoAccountDto.realName();
         this.gender = createKakaoAccountDto.gender();
         this.birthday = createKakaoAccountDto.birthday();
         this.phoneNumber = createKakaoAccountDto.phoneNumber();
         this.profileImageUrl = createKakaoAccountDto.profileImageUrl();
+        this.email = createKakaoAccountDto.email();
         this.role = User.Role.USER;
-        this.createdAt = LocalDateTime.now();
-        this.deleted = false;
     }
 
     public enum GenderType {

@@ -17,8 +17,8 @@ public record UserInfoDto(String id,
                           String email,
                           User.Role role,
                           LocalDateTime createdAt,
-                          Boolean deleted,
-                          LocalDateTime withdrawRequestAt) {
+                          LocalDateTime updatedAt,
+                          LocalDateTime deletedAt) {
     public static UserInfoDto of(User user) {
         return new UserInfoDto(
                 user.getId(),
@@ -31,8 +31,8 @@ public record UserInfoDto(String id,
                 user.getEmail(),
                 user.getRole(),
                 user.getCreatedAt(),
-                user.getDeleted(),
-                user.getWithdrawRequestAt()
+                user.getUpdatedAt(),
+                user.getDeletedAt()
         );
     }
 }

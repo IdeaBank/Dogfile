@@ -13,7 +13,7 @@ import com.honeyosori.dogfile.global.constant.PayloadData;
 import com.honeyosori.dogfile.global.response.BaseResponse;
 import com.honeyosori.dogfile.global.response.BaseResponseStatus;
 import com.honeyosori.dogfile.global.utility.JwtUtility;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-@Transactional
 @Service
 @Slf4j
 public class UserService {
@@ -45,6 +44,28 @@ public class UserService {
         this.userRepository = userRepository;
         this.jwtUtility = jwtUtility;
         this.redisTemplate = redisTemplate;
+    }
+
+    private void sendDeleteRequestToDogus(String dogfileUserId) {
+        RestClient restClient = RestClient.builder()
+                .baseUrl(DogUrl.DOGUS)
+                .build();
+
+        log.info("[DOGUS] Sending {}", dogfileUserId);
+
+        String result = restClient.delete()
+                .uri(DogUrl.DOGUS_DELETE + dogfileUserId)
+                .headers(httpHeaders -> {
+                    httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+                })
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, (r, e) -> {
+                    log.error("{} {}", e.getStatusCode(), e.getBody());
+                    throw new OAuthException(BaseResponseStatus.INVALID_JWT_TOKEN);
+                })
+                .body(String.class);
+
+        log.info("[DOGUS] Response {}", result);
     }
 
     private void sendRegisterRequestToDogus(CreateDogusUserDto createDogusUserDto) {
@@ -109,7 +130,7 @@ public class UserService {
         }
     }
 
-    // TODO: 트랜잭션 롤백, SAGA 패턴 적용(보상 트랜잭션 적용)
+    // TODO: SAGA 패턴 적용(보상 트랜잭션 적용)
     @Transactional
     public BaseResponse<?> register(CreateUserDto createUserDto) {
         String email = createUserDto.email();
@@ -117,8 +138,12 @@ public class UserService {
 
         User user = this.userRepository.findUserByEmail(email).orElse(null);
 
-        if (user != null) {
+        if (user != null && user.getDeletedAt() == null) {
             return new BaseResponse<>(BaseResponseStatus.EMAIL_EXISTS, null);
+        }
+
+        else if (user != null) {
+            return new BaseResponse<>(BaseResponseStatus.WITHDRAWN, null);
         }
 
         User newUser = createUserDto.toUser();
@@ -151,6 +176,7 @@ public class UserService {
             log.info("[DOGCLUB] Send User Create Request");
             sendRegisterRequestToDogclub(createDogclubUserDto);
         } catch (Exception e) {
+            sendDeleteRequestToDogus(newUser.getId());
             e.printStackTrace();
             throw new RuntimeException("DOGCLUB 등록 실패", e);
         }
@@ -160,12 +186,14 @@ public class UserService {
 
     @Transactional
     public BaseResponse<?> updateUser(UpdateUserDto updateUserDto, String email) {
-        // TODO: Create DB Index of email
-        User user = this.userRepository.getUserByEmail(email);
+        User user = this.userRepository.findUserByEmail(email).orElse(null);
 
-        if (user == null || user.getDeleted()) {
-            return new BaseResponse<>(BaseResponseStatus.INVALID_JWT_TOKEN, null);
+        if (user == null) {
+            return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
         }
+
+        String oldAccountName = user.getAccountName();
+        String oldProfileImageUrl = user.getProfileImageUrl();
 
         if (updateUserDto.accountName() != null) {
             user.setAccountName(updateUserDto.accountName());
@@ -191,20 +219,121 @@ public class UserService {
             user.setProfileImageUrl(updateUserDto.profileImageUrl());
         }
 
+        if (updateUserDto.phoneNumber() != null) {
+            user.setPhoneNumber(updateUserDto.phoneNumber());
+        }
+
         if (updateUserDto.email() != null) {
             user.setEmail(updateUserDto.email());
         }
 
+        if (updateUserDto.accountName() != null || updateUserDto.profileImageUrl() != null) {
+            try {
+                UpdateDogusUserDto updateDogusUserDto = UpdateDogusUserDto.builder()
+                        .accountName(updateUserDto.accountName())
+                        .profileImageUrl(updateUserDto.profileImageUrl())
+                        .build();
+
+                log.info("[DOGUS] Send User Update Request");
+                sendUpdateRequestToDogus(user.getId(), updateDogusUserDto);
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException("DOGUS 업데이트 실패", e);
+            }
+
+            try {
+                UpdateDogclubUserDto updateDogclubUserDto = UpdateDogclubUserDto.builder()
+                        .accountName(updateUserDto.accountName())
+                        .profileImageUrl(updateUserDto.profileImageUrl())
+                        .build();
+
+                log.info("[DOGCLUB] Send User Update Request");
+                sendUpdateRequestToDogclub(user.getId(), updateDogclubUserDto);
+            } catch (Exception e) {
+                UpdateDogusUserDto undoDogusUserDto = UpdateDogusUserDto.builder()
+                        .accountName(oldAccountName)
+                        .profileImageUrl(oldProfileImageUrl)
+                        .build();
+
+                sendUpdateRequestToDogus(user.getId(), undoDogusUserDto);
+                e.printStackTrace();
+                throw new RuntimeException("DOGCLUB 업데이트 실패", e);
+            }
+        }
+
         return new BaseResponse<>(BaseResponseStatus.UPDATED, updateUserDto);
+    }
+
+    private void sendUpdateRequestToDogclub(String dogfileUserId, UpdateDogclubUserDto updateDogclubUserDto) {
+        RestClient restClient = RestClient.builder()
+                .baseUrl(DogUrl.DOGUS)
+                .build();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        try {
+            String jsonString = objectMapper.writeValueAsString(updateDogclubUserDto);
+            log.info("[DOGCLUB] Sending {}", jsonString);
+
+            String result = restClient.post()
+                    .uri(DogUrl.DOGCLUB_UPDATE + dogfileUserId)
+                    .headers(httpHeaders -> {
+                        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+                    })
+                    .body(jsonString)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, (r, e) -> {
+                        log.error("{} {}", e.getStatusCode(), e.getBody());
+                        throw new OAuthException(BaseResponseStatus.INVALID_JWT_TOKEN);
+                    })
+                    .body(String.class);
+
+            log.info("[DOGCLUB] Response {}", result);
+
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sendUpdateRequestToDogus(String dogfileUserId, UpdateDogusUserDto updateDogusUserDto) {
+        RestClient restClient = RestClient.builder()
+                .baseUrl(DogUrl.DOGUS)
+                .build();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        try {
+            String jsonString = objectMapper.writeValueAsString(updateDogusUserDto);
+            log.info("[DOGUS] Sending {}", jsonString);
+
+            String result = restClient.post()
+                    .uri(DogUrl.DOGUS_UPDATE + dogfileUserId)
+                    .headers(httpHeaders -> {
+                        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+                    })
+                    .body(jsonString)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, (r, e) -> {
+                        log.error("{} {}", e.getStatusCode(), e.getBody());
+                        throw new OAuthException(BaseResponseStatus.INVALID_JWT_TOKEN);
+                    })
+                    .body(String.class);
+
+            log.info("[DOGUS] Response {}", result);
+
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
     }
 
     public ResponseEntity<?> login(LoginDto loginDto) {
         String email = loginDto.email();
         String password = loginDto.password();
 
-        User user = this.userRepository.findUserByEmail(email).orElse(null);
+        User user = this.userRepository.findUserByEmailAndDeletedAtIsNull(email).orElse(null);
 
-        if (user == null || user.getDeleted()) {
+        if (user == null) {
             return BaseResponse.getResponseEntity(BaseResponseStatus.USER_NOT_FOUND);
         }
 
@@ -220,10 +349,11 @@ public class UserService {
         return BaseResponse.getResponseEntity(BaseResponseStatus.WRONG_PASSWORD);
     }
 
+    @Transactional(readOnly = true)
     public ResponseEntity<?> logout(String email) {
         User user = this.userRepository.findUserByEmail(email).orElse(null);
 
-        if (user == null || user.getDeleted()) {
+        if (user == null) {
             return BaseResponse.getResponseEntity(BaseResponseStatus.USER_NOT_FOUND);
         }
 
@@ -253,36 +383,42 @@ public class UserService {
 
     @Transactional
     public BaseResponse<?> deleteUser(String email) {
-        User user = this.userRepository.getUserByEmail(email);
+        User user = this.userRepository.getUserByEmailAndDeletedAtIsNull(email).orElse(null);
 
-        user.setDeleted(true);
+        if (user == null) {
+            return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
+        }
 
-        user.setWithdrawRequestAt(LocalDateTime.now());
+        user.setDeletedAt(LocalDateTime.now());
 
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, null);
     }
 
     @Transactional
     public BaseResponse<?> cancelDeletion(String email) {
-        User user = this.userRepository.getUserByEmail(email);
+        User user = this.userRepository.getUserByEmailAndDeletedAtIsNotNull(email).orElse(null);
 
-        user.setDeleted(false);
-        user.setWithdrawRequestAt(null);
+        if (user == null) {
+            return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
+        }
+
+        user.setDeletedAt(null);
 
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, null);
     }
 
+    @Transactional(readOnly = true)
     public BaseResponse<?> getWithdrawingUser() {
-        // TODO: Create DB Index of Deleted
-        List<User> user = this.userRepository.findByDeleted();
+        List<User> deleted = this.userRepository.findByDeleted();
 
-        return new BaseResponse<>(BaseResponseStatus.SUCCESS, user);
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, deleted);
     }
 
+    @Transactional(readOnly = true)
     public BaseResponse<?> getUserInfo(String email) {
-        User user = this.userRepository.findUserByEmail(email).orElse(null);
+        User user = this.userRepository.findUserByEmailAndDeletedAtIsNull(email).orElse(null);
 
-        if (user == null || user.getDeleted()) {
+        if (user == null) {
             return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
         }
 
@@ -291,16 +427,18 @@ public class UserService {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, userInfoDto);
     }
 
+    @Transactional(readOnly = true)
     public BaseResponse<?> findAllUser(String email) {
-        List<User> user = this.userRepository.findAllByEmailContaining(email);
+        List<User> user = this.userRepository.findAllByEmailContainingAndDeletedAtIsNull(email);
 
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, user.stream().map(UserInfoDto::of));
     }
 
+    @Transactional(readOnly = true)
     public BaseResponse<?> getUserLoginInfo(String email) {
-        User user = this.userRepository.findUserByEmail(email).orElse(null);
+        User user = this.userRepository.findUserByEmailAndDeletedAtIsNull(email).orElse(null);
 
-        if (user == null || user.getDeleted()) {
+        if (user == null) {
             return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
         }
 
@@ -309,10 +447,11 @@ public class UserService {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, userLoginInfoDto);
     }
 
+    @Transactional(readOnly = true)
     public BaseResponse<?> findUserById(String id) {
-        User user = this.userRepository.findById(id).orElse(null);
+        User user = this.userRepository.findByIdAndDeletedAtIsNull(id).orElse(null);
 
-        if (user == null || user.getDeleted()) {
+        if (user == null) {
             return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
         }
 
@@ -322,10 +461,9 @@ public class UserService {
     }
 
     public BaseResponse<?> findUserByAccountName(String accountName) {
-        // TODO: Create DB Index of Account Name
-        User user = this.userRepository.findByAccountName(accountName).orElse(null);
+        User user = this.userRepository.findByAccountNameAndDeletedAtIsNull(accountName).orElse(null);
 
-        if (user == null || user.getDeleted()) {
+        if (user == null) {
             return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
         }
 
@@ -335,17 +473,16 @@ public class UserService {
     }
 
     public BaseResponse<?> findUserByPartialAccountName(String partialAccountName) {
-        // Only starting with like can use a normal index
         // TODO: Create Full-Text Index
-        List<User> user = this.userRepository.findByAccountNameStartingWith(partialAccountName).orElse(null);
+        List<User> user = this.userRepository.findByAccountNameContainingAndDeletedAtIsNull(partialAccountName);
 
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, user.stream().map(UserInfoDto::of));
     }
 
     public BaseResponse<?> findUserByEmail(String email) {
-        User user = this.userRepository.findUserByEmail(email).orElse(null);
+        User user = this.userRepository.findUserByEmailAndDeletedAtIsNull(email).orElse(null);
 
-        if (user == null || user.getDeleted()) {
+        if (user == null) {
             return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
         }
 
@@ -355,9 +492,9 @@ public class UserService {
     }
 
     public BaseResponse<?> findUserByPhoneNumber(String phoneNumber) {
-        User user = this.userRepository.findByPhoneNumber(phoneNumber).orElse(null);
+        User user = this.userRepository.findByPhoneNumberAndDeletedAtIsNull(phoneNumber).orElse(null);
 
-        if (user == null || user.getDeleted()) {
+        if (user == null) {
             return new BaseResponse<>(BaseResponseStatus.USER_NOT_FOUND, null);
         }
 

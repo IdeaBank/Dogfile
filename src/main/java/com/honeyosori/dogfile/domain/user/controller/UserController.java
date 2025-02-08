@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/user")
+@RequestMapping("/api/v1")
 public class UserController {
     private UserService userService;
     @Autowired
@@ -20,78 +20,78 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping
+    @PostMapping("/user")
     public ResponseEntity<?> createUser(@Valid @RequestBody CreateUserDto createUserDto) {
         return BaseResponse.getResponseEntity(this.userService.register(createUserDto));
     }
 
-    @PostMapping("/login")
+    @PostMapping("/user/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginDto loginDto) {
         return this.userService.login(loginDto);
     }
 
-    @PostMapping("/logout")
+    @PostMapping("/user/logout")
     public ResponseEntity<?> logout(@RequestHeader(CustomHeader.EMAIL) String email) {
         return this.userService.logout(email);
     }
 
-    @PostMapping("/refresh")
+    @PostMapping("/user/refresh")
     public ResponseEntity<?> refresh(@RequestHeader(CustomHeader.EMAIL) String email, @Valid @CookieValue("refresh_token") String refreshToken) {
         return this.userService.refresh(email, refreshToken);
     }
 
-    @PatchMapping
+    @PatchMapping("/user")
     public ResponseEntity<?> updateUser(@RequestBody UpdateUserDto updateUserDto, @RequestHeader(CustomHeader.EMAIL) String email) {
         return BaseResponse.getResponseEntity(this.userService.updateUser(updateUserDto, email));
     }
 
-    @DeleteMapping
+    @DeleteMapping("/user")
     public ResponseEntity<?> deleteUser(@RequestHeader(CustomHeader.EMAIL) String email) {
         return BaseResponse.getResponseEntity(this.userService.deleteUser(email));
     }
 
-    @DeleteMapping("/cancel")
+    @DeleteMapping("/user/cancel")
     public ResponseEntity<?> cancelDeletion(@RequestHeader(CustomHeader.EMAIL) String email) {
         return BaseResponse.getResponseEntity(this.userService.cancelDeletion(email));
     }
 
-    @GetMapping("/withdraw")
+    @GetMapping("/user/withdraw")
     public ResponseEntity<?> getWithdrawingUser() {
         return BaseResponse.getResponseEntity(this.userService.getWithdrawingUser());
     }
 
     // TODO: change to internal server only
-    @GetMapping("/info")
+    @GetMapping("/user/info")
     public ResponseEntity<?> getUserInfo(@RequestHeader(CustomHeader.EMAIL) String email) {
         return BaseResponse.getResponseEntity(this.userService.getUserInfo(email));
     }
 
-    @GetMapping
-    public ResponseEntity<?> findUserById(@RequestParam("id") String id) {
+    @GetMapping("/user/{id}")
+    public ResponseEntity<?> findUserById(@PathVariable String id) {
         return BaseResponse.getResponseEntity(this.userService.findUserById(id));
     }
 
-    @GetMapping("/by-account-name")
-    public ResponseEntity<?> findUserByAccountName(@RequestParam("accountName") String accountName) {
+    @GetMapping("/user/by-account-name/{accountName}")
+    public ResponseEntity<?> findUserByAccountName(@PathVariable String accountName) {
         return BaseResponse.getResponseEntity(this.userService.findUserByAccountName(accountName));
     }
 
-    @GetMapping("by-partial-account-name")
-    public ResponseEntity<?> findUserByPartialAccountName(@RequestParam("partialAccountName") String partialAccountName) {
-        return BaseResponse.getResponseEntity(this.userService.findUserByPartialAccountName(partialAccountName));
+    @GetMapping("/users/by-account-name")
+    public ResponseEntity<?> findUserByPartialAccountName(@RequestParam("query") String query) {
+        return BaseResponse.getResponseEntity(this.userService.findUserByPartialAccountName(query));
     }
 
-    @GetMapping("/by-email")
-    public ResponseEntity<?> findUserByEmail(@RequestParam("email") String email) {
+    @GetMapping("/user/by-email/{email}")
+    public ResponseEntity<?> findUserByEmail(@PathVariable("email") String email) {
         return BaseResponse.getResponseEntity(this.userService.findUserByEmail(email));
     }
 
-    @GetMapping("/by-phone-number")
-    public ResponseEntity<?> findUserByPhoneNumber(@RequestParam("phoneNumber") String phoneNumber) {
+    @GetMapping("/user/by-phone-number/{phoneNumber}")
+    public ResponseEntity<?> findUserByPhoneNumber(@PathVariable String phoneNumber) {
         return BaseResponse.getResponseEntity(this.userService.findUserByPhoneNumber(phoneNumber));
     }
 
-    @GetMapping("/login-info")
+    @GetMapping("/user/login-info")
     public ResponseEntity<?> getLoginInfo(@RequestHeader(CustomHeader.EMAIL) String email) {
         return BaseResponse.getResponseEntity(this.userService.getUserLoginInfo(email));
     }

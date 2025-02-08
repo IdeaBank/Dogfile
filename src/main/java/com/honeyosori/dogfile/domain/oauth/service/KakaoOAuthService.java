@@ -18,12 +18,14 @@ import com.honeyosori.dogfile.global.response.BaseResponse;
 import com.honeyosori.dogfile.global.response.BaseResponseStatus;
 import com.honeyosori.dogfile.global.utility.JwtUtility;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
@@ -33,6 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
+@Slf4j
 public class KakaoOAuthService {
     private final UserRepository userRepository;
     private final KakaoOAuthComponent kakaoOAuthComponent;
@@ -45,6 +48,8 @@ public class KakaoOAuthService {
         this.jwtUtility = jwtUtility;
     }
 
+    // 카카오서버에 auth 인증을 받고, 유저를 임시로 저장한다음, 다음 register 요청으로 빠졌던 유저의 정보를 채우는거?
+    @Transactional
     public ResponseEntity<?> authenticate(HttpServletRequest request) {
         String code = request.getParameter(RequestParameter.CODE);
 
@@ -110,13 +115,14 @@ public class KakaoOAuthService {
         return readUserInformation(tokenResponse.getAccessToken());
     }
 
+    @Transactional
     public ResponseEntity<?> loginWithKakao(String accessToken) {
         accessToken = accessToken.replace("Bearer ", "");
 
         return readUserInformation(accessToken);
     }
 
-    public ResponseEntity<?> readUserInformation(String kakaoAccessToken) {
+    private ResponseEntity<?> readUserInformation(String kakaoAccessToken) {
         String email = getEmailUsingAccessToken(kakaoAccessToken);
 
         User user = this.userRepository.findUserByEmail(email).orElse(null);
@@ -130,6 +136,7 @@ public class KakaoOAuthService {
             return jwtUtility.generateJwtResponse(claims);
         }
 
+        // 이해가 안되는 코드, nullable false면 에러나지 않나?
         if (user == null) {
             User newUser = new User(email);
             this.userRepository.save(newUser);
@@ -144,6 +151,28 @@ public class KakaoOAuthService {
         return jwtUtility.generateJwtResponse(claims);
     }
 
+    private void sendDeleteRequestToDogus(String dogfileUserId) {
+        RestClient restClient = RestClient.builder()
+                .baseUrl(DogUrl.DOGUS)
+                .build();
+
+        log.info("[DOGUS] Sending {}", dogfileUserId);
+
+        String result = restClient.delete()
+                .uri(DogUrl.DOGUS_DELETE + dogfileUserId)
+                .headers(httpHeaders -> {
+                    httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+                })
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, (r, e) -> {
+                    log.error("{} {}", e.getStatusCode(), e.getBody());
+                    throw new OAuthException(BaseResponseStatus.INVALID_JWT_TOKEN);
+                })
+                .body(String.class);
+
+        log.info("[DOGUS] Response {}", result);
+    }
+
     private void sendRegisterRequestToDogus(CreateDogusUserDto createDogusUserDto) {
         RestClient restClient = RestClient.builder().baseUrl(DogUrl.DOGUS).build();
 
@@ -152,11 +181,22 @@ public class KakaoOAuthService {
         try {
             String dogusAccountInformation = objectMapper.writeValueAsString(createDogusUserDto);
 
-            RestClient.ResponseSpec responseSpec = restClient.post().uri(DogUrl.DOGUS_REGISTER).headers(httpHeaders -> {
-                httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-            }).body(dogusAccountInformation).retrieve();
+            log.info("[DOGUS] Sending {}", dogusAccountInformation);
 
-            String result = responseSpec.body(String.class);
+            String result = restClient.post()
+                    .uri(DogUrl.DOGUS_REGISTER)
+                    .headers(httpHeaders -> {
+                        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+                    })
+                    .body(dogusAccountInformation)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, (r, e) -> {
+                        log.error("{} {}", e.getStatusCode(), e.getBody());
+                        throw new OAuthException(BaseResponseStatus.INVALID_JWT_TOKEN);
+                    })
+                    .body(String.class);
+
+            log.info("[DOGCLUB] Response {}", result);
 
         } catch (JsonProcessingException e) {
             e.printStackTrace();
@@ -169,24 +209,42 @@ public class KakaoOAuthService {
         ObjectMapper objectMapper = new ObjectMapper();
 
         try {
-            String dogusAccountInformation = objectMapper.writeValueAsString(createDogclubUserDto);
+            String dogclubAccountInformation = objectMapper.writeValueAsString(createDogclubUserDto);
 
-            RestClient.ResponseSpec responseSpec = restClient.post().uri(DogUrl.DOGCLUB_REGISTER).headers(httpHeaders -> {
-                httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-            }).body(dogusAccountInformation).retrieve();
+            log.info("[DOGCLUB] Sending {}", dogclubAccountInformation);
 
-            String result = responseSpec.body(String.class);
+            String result = restClient.post()
+                    .uri(DogUrl.DOGCLUB_REGISTER)
+                    .headers(httpHeaders -> {
+                        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+                    })
+                    .body(dogclubAccountInformation)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, (r, e) -> {
+                        log.error("{} {}", e.getStatusCode(), e.getBody());
+                        throw new OAuthException(BaseResponseStatus.INVALID_JWT_TOKEN);
+                    })
+                    .body(String.class);
+
+            log.info("[DOGCLUB] Response {}", result);
 
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
     }
 
-    // TODO: AccountName 설정해주기
+    // TODO: SAGA 패턴 적용(보상 트랜잭션 적용)
+    @Transactional
     public BaseResponse<?> registerKakaoAccount(String email, CreateKakaoAccountDto createKakaoAccountDto) {
-        User user = this.userRepository.getUserByEmail(email);
+        User user = this.userRepository.findUserByEmail(email).orElse(null);
 
-        if (user.getPassword() != null) {
+        if (user == null) {
+            throw new OAuthException(BaseResponseStatus.USER_NOT_FOUND);
+        }
+        else if (user.getDeletedAt() != null) {
+            throw new OAuthException(BaseResponseStatus.WITHDRAWN);
+        }
+        else if (user.getPassword() != null) {
             throw new OAuthException(BaseResponseStatus.USER_EXISTS);
         }
 
@@ -202,9 +260,11 @@ public class KakaoOAuthService {
                     .profileImageUrl(createKakaoAccountDto.profileImageUrl())
                     .build();
 
+            log.info("[DOGUS] Send User Create Request");
             sendRegisterRequestToDogus(createDogusUserDto);
         } catch (Exception e) {
             e.printStackTrace();
+            throw new RuntimeException("DOGUS 등록 실패", e);
         }
 
         try {
@@ -214,9 +274,12 @@ public class KakaoOAuthService {
                     .profileImageUrl(createKakaoAccountDto.profileImageUrl())
                     .build();
 
+            log.info("[DOGCLUB] Send User Create Request");
             sendRegisterRequestToDogclub(createDogclubUserDto);
         } catch (Exception e) {
+            sendDeleteRequestToDogus(user.getId());
             e.printStackTrace();
+            throw new RuntimeException("DOGCLUB 등록 실패", e);
         }
 
         return new BaseResponse<>(BaseResponseStatus.CREATED, createKakaoAccountDto);
