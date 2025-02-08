@@ -275,7 +275,7 @@ public class UserService {
             String jsonString = objectMapper.writeValueAsString(updateDogclubUserDto);
             log.info("[DOGCLUB] Sending {}", jsonString);
 
-            String result = restClient.post()
+            String result = restClient.patch()
                     .uri(DogUrl.DOGCLUB_UPDATE + dogfileUserId)
                     .headers(httpHeaders -> {
                         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
@@ -306,7 +306,7 @@ public class UserService {
             String jsonString = objectMapper.writeValueAsString(updateDogusUserDto);
             log.info("[DOGUS] Sending {}", jsonString);
 
-            String result = restClient.post()
+            String result = restClient.patch()
                     .uri(DogUrl.DOGUS_UPDATE + dogfileUserId)
                     .headers(httpHeaders -> {
                         httpHeaders.setContentType(MediaType.APPLICATION_JSON);

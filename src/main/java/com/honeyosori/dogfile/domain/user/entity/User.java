@@ -2,7 +2,6 @@ package com.honeyosori.dogfile.domain.user.entity;
 
 import com.honeyosori.dogfile.domain.oauth.dto.CreateKakaoAccountDto;
 import jakarta.persistence.*;
-import jdk.jfr.Timestamp;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,7 +14,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "users", indexes = {
+@Table(name = "user", indexes = {
         @Index(name = "idx_email", columnList = "email", unique = true),
         @Index(name = "idx_account_name", columnList = "accountName", unique = true)
 })
