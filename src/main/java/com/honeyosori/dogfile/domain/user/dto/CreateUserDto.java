@@ -13,10 +13,10 @@ public record CreateUserDto(@NotNull String accountName,
                             @Nullable String password,
                             @NotNull String realName,
                             @NotNull User.GenderType gender,
-                            @DateTimeFormat(pattern = "yyyy-MM-dd") @Past @NotNull Date birthday,
+                            @DateTimeFormat(pattern = "yyyy.MM.dd") @Past @NotNull Date birthday,
                             @NotNull String phoneNumber,
                             @NotNull @Email String email) {
     public User toUser() {
-        return new User(accountName, password, realName, gender, birthday, phoneNumber, email);
+        return new User(email, password, birthday, phoneNumber, gender, realName, accountName);
     }
 }

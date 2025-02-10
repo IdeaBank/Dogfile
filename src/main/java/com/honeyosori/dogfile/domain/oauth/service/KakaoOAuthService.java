@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.honeyosori.dogfile.domain.oauth.component.KakaoOAuthComponent;
 import com.honeyosori.dogfile.domain.oauth.constant.KakaoUrl;
 import com.honeyosori.dogfile.domain.oauth.constant.TokenType;
+import com.honeyosori.dogfile.domain.oauth.dto.CreateKakaoAccountDto;
 import com.honeyosori.dogfile.domain.oauth.dto.KakaoTokenResponse;
 import com.honeyosori.dogfile.domain.oauth.dto.KakaoUserInformation;
 import com.honeyosori.dogfile.domain.oauth.exception.OAuthException;
@@ -29,7 +30,11 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 
+import javax.swing.text.DateFormatter;
 import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,6 +50,26 @@ public class KakaoOAuthService {
         this.userRepository = userRepository;
         this.kakaoOAuthComponent = kakaoOAuthComponent;
         this.jwtUtility = jwtUtility;
+    }
+
+    @Transactional
+    public ResponseEntity<?> registerUser(CreateKakaoAccountDto createKakaoAccountDto) {
+        String email = getEmailUsingAccessToken(createKakaoAccountDto.kakaoAccessToken());
+        Date birthday = createKakaoAccountDto.birthday();
+        String phoneNumber = createKakaoAccountDto.phoneNumber();
+        User.GenderType genderType = createKakaoAccountDto.gender();
+        String realName = createKakaoAccountDto.realName();
+        String accountName = createKakaoAccountDto.accountName();
+
+        this.userRepository.findUserByEmail(email).ifPresent((u) -> {
+            throw new OAuthException(BaseResponseStatus.USER_EXISTS);
+        });
+
+        User user = new User(email, birthday, phoneNumber, genderType, realName, accountName);
+
+        this.userRepository.save(user);
+
+        return BaseResponse.getResponseEntity(BaseResponseStatus.CREATED);
     }
 
     public String getEmailUsingAccessToken(String accessToken) {

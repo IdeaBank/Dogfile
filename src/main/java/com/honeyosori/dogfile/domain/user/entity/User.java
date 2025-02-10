@@ -26,23 +26,12 @@ public class User {
     @Getter
     @Setter
     @Column(unique = true, nullable = false)
-    private String accountName;
+    private String email;
 
     @Getter
     @Setter
-    @Column(nullable = true)
+    @Column
     private String password;
-
-    @Getter
-    @Setter
-    @Column(nullable = false)
-    private String realName;
-
-    @Getter
-    @Setter
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private GenderType gender;
 
     @Getter
     @Setter
@@ -57,12 +46,23 @@ public class User {
     @Getter
     @Setter
     @Column(nullable = false)
-    private String profileImageUrl;
+    @Enumerated(EnumType.STRING)
+    private GenderType gender;
+
+    @Getter
+    @Setter
+    @Column(nullable = false)
+    private String realName;
 
     @Getter
     @Setter
     @Column(unique = true, nullable = false)
-    private String email;
+    private String accountName;
+
+    @Getter
+    @Setter
+    @Column(nullable = false)
+    private String profileImageUrl;
 
     @Getter
     @Setter
@@ -85,29 +85,29 @@ public class User {
     @Column
     private LocalDateTime deletedAt;
 
-    public User(String accountName, String password, String realName, GenderType gender, Date birthday, String phoneNumber, String email) {
-        this.accountName = accountName;
+    public User(String email, String password, Date birthday, String phoneNumber, GenderType gender, String realName, String accountName) {
+        this.email = email;
         this.password = password;
-        this.realName = realName;
-        this.gender = gender;
         this.birthday = birthday;
         this.phoneNumber = phoneNumber;
-        this.email = email;
-        this.profileImageUrl = "default"; // TODO: 유저 등록 시 프로필 이미지 없으면 default 이미지 url을 저장하도록 하는 if-else 추가.
-        this.role = Role.USER;
-    }
-
-    public User(String accountName, String realName, GenderType gender, Date birthday, String phoneNumber, String email) {
+        this.gender = gender;
+        this.realName = realName;
         this.accountName = accountName;
-        this.realName = realName;
-        this.gender = gender;
-        this.birthday = birthday;
-        this.phoneNumber = phoneNumber;
-        this.email = email;
         this.profileImageUrl = "default"; // TODO: 유저 등록 시 프로필 이미지 없으면 default 이미지 url을 저장하도록 하는 if-else 추가.
         this.role = Role.USER;
     }
 
+    public User(String email, Date birthday, String phoneNumber, GenderType gender, String realName, String accountName) {
+        this.email = email;
+        this.password = null;
+        this.birthday = birthday;
+        this.phoneNumber = phoneNumber;
+        this.gender = gender;
+        this.realName = realName;
+        this.accountName = accountName;
+        this.profileImageUrl = "default"; // TODO: 유저 등록 시 프로필 이미지 없으면 default 이미지 url을 저장하도록 하는 if-else 추가.
+        this.role = Role.USER;
+    }
 
     public User(String email) {
         this.email = email;
