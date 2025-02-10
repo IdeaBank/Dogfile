@@ -53,6 +53,7 @@ public class KakaoOAuthService {
         User.GenderType genderType = createKakaoAccountDto.gender();
         String realName = createKakaoAccountDto.realName();
         String accountName = createKakaoAccountDto.accountName();
+        final String profileImageUrl = "default";
 
         this.userRepository.findUserByEmail(email).ifPresent((u) -> {
             throw new OAuthException(BaseResponseStatus.USER_EXISTS);
@@ -60,6 +61,35 @@ public class KakaoOAuthService {
 
         User user = new User(email, birthday, phoneNumber, genderType, realName, accountName);
         this.userRepository.save(user);
+
+        try {
+            CreateDogusUserDto createDogusUserDto = CreateDogusUserDto.builder()
+                    .dogfileUserId(user.getId())
+                    .accountName(createKakaoAccountDto.accountName())
+                    .profileImageUrl(profileImageUrl)
+                    .build();
+
+            log.info("[DOGUS] Send User Create Request");
+            sendRegisterRequestToDogus(createDogusUserDto);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("DOGUS 등록 실패", e);
+        }
+
+        try {
+            CreateDogclubUserDto createDogclubUserDto = CreateDogclubUserDto.builder()
+                    .dogfileUserId(user.getId())
+                    .accountName(createKakaoAccountDto.accountName())
+                    .profileImageUrl(profileImageUrl)
+                    .build();
+
+            log.info("[DOGCLUB] Send User Create Request");
+            sendRegisterRequestToDogclub(createDogclubUserDto);
+        } catch (Exception e) {
+            sendDeleteRequestToDogus(user.getId());
+            e.printStackTrace();
+            throw new RuntimeException("DOGCLUB 등록 실패", e);
+        }
 
         return BaseResponse.getResponseEntity(BaseResponseStatus.CREATED);
     }
