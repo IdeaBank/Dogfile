@@ -6,18 +6,17 @@ import com.honeyosori.dogfile.domain.oauth.component.KakaoOAuthComponent;
 import com.honeyosori.dogfile.domain.oauth.constant.KakaoUrl;
 import com.honeyosori.dogfile.domain.oauth.constant.TokenType;
 import com.honeyosori.dogfile.domain.oauth.dto.CreateKakaoAccountDto;
-import com.honeyosori.dogfile.domain.oauth.dto.KakaoTokenResponse;
 import com.honeyosori.dogfile.domain.oauth.dto.KakaoUserInformation;
 import com.honeyosori.dogfile.domain.oauth.exception.OAuthException;
 import com.honeyosori.dogfile.domain.user.dto.CreateDogclubUserDto;
 import com.honeyosori.dogfile.domain.user.dto.CreateDogusUserDto;
 import com.honeyosori.dogfile.domain.user.entity.User;
 import com.honeyosori.dogfile.domain.user.repository.UserRepository;
-import com.honeyosori.dogfile.global.constant.*;
+import com.honeyosori.dogfile.global.constant.DogUrl;
+import com.honeyosori.dogfile.global.constant.PayloadData;
 import com.honeyosori.dogfile.global.response.BaseResponse;
 import com.honeyosori.dogfile.global.response.BaseResponseStatus;
 import com.honeyosori.dogfile.global.utility.JwtUtility;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
@@ -26,14 +25,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 
-import javax.swing.text.DateFormatter;
-import java.nio.charset.StandardCharsets;
-import java.text.DateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -66,7 +59,6 @@ public class KakaoOAuthService {
         });
 
         User user = new User(email, birthday, phoneNumber, genderType, realName, accountName);
-
         this.userRepository.save(user);
 
         return BaseResponse.getResponseEntity(BaseResponseStatus.CREATED);

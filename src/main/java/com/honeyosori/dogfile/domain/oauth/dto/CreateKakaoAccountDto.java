@@ -10,7 +10,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.util.Date;
 
 public record CreateKakaoAccountDto(@NotNull String kakaoAccessToken,
-                                    @DateTimeFormat(pattern = "yyyy.MM.dd") @Past @NotNull Date birthday,
+                                    @DateTimeFormat(pattern = "yyyy-MM-dd") @Past @NotNull Date birthday,
                                     @NotNull String phoneNumber,
                                     @NotNull User.GenderType gender,
                                     @NotNull String realName,
