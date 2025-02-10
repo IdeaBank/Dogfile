@@ -1,6 +1,5 @@
 package com.honeyosori.dogfile.domain.user.entity;
 
-import com.honeyosori.dogfile.domain.oauth.dto.CreateKakaoAccountDto;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -31,7 +30,7 @@ public class User {
 
     @Getter
     @Setter
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String password;
 
     @Getter
@@ -98,20 +97,20 @@ public class User {
         this.role = Role.USER;
     }
 
+    public User(String accountName, String realName, GenderType gender, Date birthday, String phoneNumber, String email) {
+        this.accountName = accountName;
+        this.realName = realName;
+        this.gender = gender;
+        this.birthday = birthday;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+        this.profileImageUrl = "default"; // TODO: 유저 등록 시 프로필 이미지 없으면 default 이미지 url을 저장하도록 하는 if-else 추가.
+        this.role = Role.USER;
+    }
+
 
     public User(String email) {
         this.email = email;
-    }
-
-    public void registerKakaoUser(CreateKakaoAccountDto createKakaoAccountDto) {
-        this.accountName = createKakaoAccountDto.accountName();
-        this.realName = createKakaoAccountDto.realName();
-        this.gender = createKakaoAccountDto.gender();
-        this.birthday = createKakaoAccountDto.birthday();
-        this.phoneNumber = createKakaoAccountDto.phoneNumber();
-        this.profileImageUrl = createKakaoAccountDto.profileImageUrl();
-        this.email = createKakaoAccountDto.email();
-        this.role = User.Role.USER;
     }
 
     public enum GenderType {

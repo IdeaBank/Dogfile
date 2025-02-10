@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.honeyosori.dogfile.domain.oauth.component.KakaoOAuthComponent;
 import com.honeyosori.dogfile.domain.oauth.constant.KakaoUrl;
 import com.honeyosori.dogfile.domain.oauth.constant.TokenType;
-import com.honeyosori.dogfile.domain.oauth.dto.CreateKakaoAccountDto;
 import com.honeyosori.dogfile.domain.oauth.dto.KakaoTokenResponse;
 import com.honeyosori.dogfile.domain.oauth.dto.KakaoUserInformation;
 import com.honeyosori.dogfile.domain.oauth.exception.OAuthException;
@@ -48,18 +47,6 @@ public class KakaoOAuthService {
         this.jwtUtility = jwtUtility;
     }
 
-    // 카카오서버에 auth 인증을 받고, 유저를 임시로 저장한다음, 다음 register 요청으로 빠졌던 유저의 정보를 채우는거?
-    @Transactional
-    public ResponseEntity<?> authenticate(HttpServletRequest request) {
-        String code = request.getParameter(RequestParameter.CODE);
-
-        if (code == null) {
-            throw new OAuthException(BaseResponseStatus.INTERNAL_SERVER_ERROR);
-        }
-
-        return requestAccessToken(code);
-    }
-
     public String getEmailUsingAccessToken(String accessToken) {
         RestClient restClient = RestClient.builder().baseUrl(kakaoOAuthComponent.API_URI).build();
 
@@ -82,40 +69,10 @@ public class KakaoOAuthService {
             throw new OAuthException(BaseResponseStatus.INTERNAL_SERVER_ERROR);
         }
 
-        System.out.println(kakaoUserInformation.getKakaoAccount().getEmail());
-
         return kakaoUserInformation.getKakaoAccount().getEmail();
     }
 
-    private ResponseEntity<?> requestAccessToken(String code) {
-        RestClient restClient = RestClient.builder().baseUrl(kakaoOAuthComponent.AUTH_URI).build();
-
-        MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
-
-        requestBody.add(RequestParameter.CODE, code);
-        requestBody.add(RequestParameter.GRANT_TYPE, kakaoOAuthComponent.GRANT_TYPE);
-        requestBody.add(RequestParameter.CLIENT_ID, kakaoOAuthComponent.CLIENT_ID);
-        requestBody.add(RequestParameter.REDIRECT_URI, kakaoOAuthComponent.REDIRECT_URI + DogUrl.DOGFILE_OAUTH);
-
-        KakaoTokenResponse tokenResponse = restClient.post()
-                .uri(KakaoUrl.GET_TOKEN)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .acceptCharset(StandardCharsets.UTF_8)
-                .body(requestBody)
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, (request, response) -> {
-                    throw new OAuthException(BaseResponseStatus.REJECTED);
-                })
-                .body(KakaoTokenResponse.class);
-
-        if (tokenResponse == null) {
-            throw new OAuthException(BaseResponseStatus.INTERNAL_SERVER_ERROR);
-        }
-
-        return readUserInformation(tokenResponse.getAccessToken());
-    }
-
-    @Transactional
+    @Transactional(readOnly = true)
     public ResponseEntity<?> loginWithKakao(String accessToken) {
         accessToken = accessToken.replace("Bearer ", "");
 
@@ -125,28 +82,12 @@ public class KakaoOAuthService {
     private ResponseEntity<?> readUserInformation(String kakaoAccessToken) {
         String email = getEmailUsingAccessToken(kakaoAccessToken);
 
-        User user = this.userRepository.findUserByEmail(email).orElse(null);
-
-        if (user != null && user.getPassword() != null) {
-            Map<String, String> claims = new HashMap<>();
-
-            claims.put(PayloadData.ORIGIN, JwtOrigin.LOCAL.getName());
-            claims.put(PayloadData.EMAIL, email);
-
-            return jwtUtility.generateJwtResponse(claims);
-        }
-
-        // 이해가 안되는 코드, nullable false면 에러나지 않나?
-        if (user == null) {
-            User newUser = new User(email);
-            this.userRepository.save(newUser);
-        }
+        // User 없으면 USER_NOT_FOUND 반환
+        this.userRepository.findUserByEmail(email).orElseThrow(()
+                -> new OAuthException(BaseResponseStatus.USER_NOT_FOUND));
 
         Map<String, String> claims = new HashMap<>();
-
-        claims.put(PayloadData.ORIGIN, JwtOrigin.KAKAO.getName());
         claims.put(PayloadData.EMAIL, email);
-        claims.put(PayloadData.ACCESS_TOKEN, kakaoAccessToken);
 
         return jwtUtility.generateJwtResponse(claims);
     }
@@ -231,57 +172,5 @@ public class KakaoOAuthService {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-    }
-
-    // TODO: SAGA 패턴 적용(보상 트랜잭션 적용)
-    @Transactional
-    public BaseResponse<?> registerKakaoAccount(String email, CreateKakaoAccountDto createKakaoAccountDto) {
-        User user = this.userRepository.findUserByEmail(email).orElse(null);
-
-        if (user == null) {
-            throw new OAuthException(BaseResponseStatus.USER_NOT_FOUND);
-        }
-        else if (user.getDeletedAt() != null) {
-            throw new OAuthException(BaseResponseStatus.WITHDRAWN);
-        }
-        else if (user.getPassword() != null) {
-            throw new OAuthException(BaseResponseStatus.USER_EXISTS);
-        }
-
-        user.setPassword(encoder.encode(createKakaoAccountDto.password()));
-        user.registerKakaoUser(createKakaoAccountDto);
-
-        this.userRepository.save(user);
-
-        try {
-            CreateDogusUserDto createDogusUserDto = CreateDogusUserDto.builder()
-                    .dogfileUserId(user.getId())
-                    .accountName(email)
-                    .profileImageUrl(createKakaoAccountDto.profileImageUrl())
-                    .build();
-
-            log.info("[DOGUS] Send User Create Request");
-            sendRegisterRequestToDogus(createDogusUserDto);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("DOGUS 등록 실패", e);
-        }
-
-        try {
-            CreateDogclubUserDto createDogclubUserDto = CreateDogclubUserDto.builder()
-                    .dogfileUserId(user.getId())
-                    .accountName(email)
-                    .profileImageUrl(createKakaoAccountDto.profileImageUrl())
-                    .build();
-
-            log.info("[DOGCLUB] Send User Create Request");
-            sendRegisterRequestToDogclub(createDogclubUserDto);
-        } catch (Exception e) {
-            sendDeleteRequestToDogus(user.getId());
-            e.printStackTrace();
-            throw new RuntimeException("DOGCLUB 등록 실패", e);
-        }
-
-        return new BaseResponse<>(BaseResponseStatus.CREATED, createKakaoAccountDto);
     }
 }
