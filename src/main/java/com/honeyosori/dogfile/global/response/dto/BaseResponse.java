@@ -1,42 +1,44 @@
-package com.honeyosori.dogfile.global.response;
+package com.honeyosori.dogfile.global.response.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Builder;
 import lombok.Getter;
-import org.springframework.http.HttpStatusCode;
+import lombok.Setter;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
-@JsonPropertyOrder({"result", "code", "message", "data"})
+@Builder
+@Getter
+@JsonPropertyOrder({"code", "message", "data"})
 public class BaseResponse<T> {
-    @JsonProperty("result")
-    private boolean result;
-    @Getter
     @JsonProperty("code")
-    private Integer code;
+    private int code;
+
     @JsonProperty("message")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String message;
+
     @JsonProperty("data")
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Setter
     private T data;
 
-    public BaseResponse(BaseResponseStatus status, T data) {
-        this.result = status.getResult();
-        this.code = status.getStatus();
-        this.message = status.getMessage();
+    public BaseResponse(int code, String message, T data) {
+        this.code = code;
+        this.message = message;
         this.data = data;
     }
 
-    public static ResponseEntity<?> getResponseEntity(BaseResponse<?> baseResponse) {
-        return new ResponseEntity<>(baseResponse, HttpStatusCode.valueOf(baseResponse.code));
+    public static BaseResponse<?> of(GeneralResponse generalResponse) {
+        return new BaseResponse<>(generalResponse.getCode(), generalResponse.getMessage(), null);
     }
 
-    public static ResponseEntity<?> getResponseEntity(BaseResponseStatus status) {
-        BaseResponse<?> baseResponse = new BaseResponse<>(status, null);
-
-        return getResponseEntity(baseResponse);
+    public ResponseEntity<?> to() {
+        return ResponseEntity.status(this.code).header("Content-Type", MediaType.APPLICATION_JSON_VALUE).body(this);
     }
 
     @Override

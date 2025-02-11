@@ -1,4 +1,4 @@
-package com.honeyosori.dogfile.global.response;
+package com.honeyosori.dogfile.global.response.dto;
 
 import org.springframework.stereotype.Component;
 import org.springframework.validation.FieldError;

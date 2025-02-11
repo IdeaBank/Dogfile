@@ -1,4 +1,4 @@
-package com.honeyosori.dogfile.domain.user.dto;
+package com.honeyosori.dogfile.domain.feign.dto;
 
 import lombok.Builder;
 
