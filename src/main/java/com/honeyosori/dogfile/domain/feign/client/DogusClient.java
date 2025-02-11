@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import static com.honeyosori.dogfile.global.constant.DogUrl.*;
 
-@FeignClient(name = "dogus", configuration = FeignOKHttpConfig.class)
+@FeignClient(name = "dogus", url = "http://dogus:8080", configuration = FeignOKHttpConfig.class)
 public interface DogusClient {
     @GetMapping("/healthz")
     ResponseEntity<?> healthz();
