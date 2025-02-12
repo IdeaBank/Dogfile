@@ -1,0 +1,3 @@
+klat:
+  app-id: ${KLAT_APP_ID}
+  api-key: ${KLAT_API_KEY}

@@ -12,10 +12,16 @@ import com.honeyosori.dogfile.domain.user.entity.User.Role;
 import com.honeyosori.dogfile.domain.user.repository.UserRepository;
 import com.honeyosori.dogfile.global.constant.PayloadData;
 import com.honeyosori.dogfile.global.exception.dto.GlobalException;
+import com.honeyosori.dogfile.global.klat.component.KlatComponent;
+import com.honeyosori.dogfile.global.klat.dto.CreateKlatUserDto;
+import com.honeyosori.dogfile.global.klat.dto.KlatResponseDto;
+import com.honeyosori.dogfile.global.klat.dto.LoginKlatDto;
 import com.honeyosori.dogfile.global.response.dto.BaseResponse;
 import com.honeyosori.dogfile.global.response.dto.GeneralResponse;
 import com.honeyosori.dogfile.global.utility.JwtUtility;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -23,6 +29,7 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -39,6 +46,7 @@ public class UserService {
     private final RedisTemplate<String, String> redisTemplate;
     private final DogusClient dogusClient;
     private final DogclubClient dogclubClient;
+    private final KlatComponent klatComponent;
 
     @Autowired
     public UserService(
@@ -46,13 +54,15 @@ public class UserService {
             JwtUtility jwtUtility,
             RedisTemplate<String, String> redisTemplate,
             DogusClient dogusClient,
-            DogclubClient dogclubClient
+            DogclubClient dogclubClient,
+            KlatComponent klatcomponent
     ) {
         this.userRepository = userRepository;
         this.jwtUtility = jwtUtility;
         this.redisTemplate = redisTemplate;
         this.dogusClient = dogusClient;
         this.dogclubClient = dogclubClient;
+        this.klatComponent = klatcomponent;
     }
 
     @Transactional
@@ -75,6 +85,7 @@ public class UserService {
 
         this.userRepository.save(newUser);
 
+
         CreateDogusUserDto createDogusUserDto = CreateDogusUserDto.builder()
                 .dogfileUserId(newUser.getId())
                 .accountName(createUserDto.accountName())
@@ -84,6 +95,13 @@ public class UserService {
         CreateDogclubUserDto createDogclubUserDto = CreateDogclubUserDto.builder()
                 .dogfileUserId(newUser.getId())
                 .accountName(createUserDto.accountName())
+                .profileImageUrl(profileImageUrl)
+                .build();
+
+        CreateKlatUserDto createKlatUserDto = CreateKlatUserDto.builder()
+                .userId(newUser.getId())
+                .password(newUser.getId())
+                .username(createUserDto.accountName())
                 .profileImageUrl(profileImageUrl)
                 .build();
 
@@ -106,7 +124,24 @@ public class UserService {
             throw new RuntimeException("DOGCLUB 등록 실패", e);
         }
 
-         return createUserDto;
+        try {
+            log.info("[KLAT] Send User Create Request");
+            RestClient restClient = RestClient.create();
+            KlatResponseDto result = restClient.post()
+                    .uri("https://api.talkplus.io/v1.4/api/users/create")
+                    .headers(headers -> {
+                        headers.set("app-id", klatComponent.getKLAT_APP_ID());
+                        headers.set("api-key", klatComponent.getKLAT_API_KEY());
+                    })
+                    .body(createKlatUserDto)
+                    .retrieve()
+                    .body(KlatResponseDto.class);
+            log.info("[KLAT] " + result.getLoginToken());
+        } catch (Exception e) {
+            throw new RuntimeException("KLAT 등록 실패", e);
+        }
+
+        return createUserDto;
     }
 
     @Transactional
@@ -194,6 +229,7 @@ public class UserService {
         String password = loginDto.password();
         String dogusId;
         String dogclubId;
+        String klatLoginToken;
 
         User user = this.userRepository.findUserByEmailAndDeletedAtIsNull(email)
                 .orElseThrow(() -> new GlobalException(GeneralResponse.USER_NOT_FOUND));
@@ -216,6 +252,29 @@ public class UserService {
             throw new RuntimeException("DOGCLUB 찾기 실패", e);
         }
 
+        LoginKlatDto loginKlatDto = LoginKlatDto.builder()
+                .userId(user.getId())
+                .password(user.getId())
+                .build();
+
+        try {
+            log.info("[KLAT] Send User Create Request");
+            RestClient restClient = RestClient.create();
+            KlatResponseDto result = restClient.post()
+                    .uri("https://api.talkplus.io/v1.4/api/users/login")
+                    .headers(headers -> {
+                        headers.set("app-id", klatComponent.getKLAT_APP_ID());
+                        headers.set("api-key", klatComponent.getKLAT_API_KEY());
+                    })
+                    .body(loginKlatDto)
+                    .retrieve()
+                    .body(KlatResponseDto.class);
+            log.info("[KLAT] " + result.getLoginToken());
+            klatLoginToken = result.getLoginToken();
+        } catch (Exception e) {
+            throw new RuntimeException("KLAT 등록 실패", e);
+        }
+
         if (encoder.matches(password, user.getPassword())) {
             Map<String, String> claims = new HashMap<>();
 
@@ -223,6 +282,7 @@ public class UserService {
             claims.put(PayloadData.DOGFILE, user.getId());
             claims.put(PayloadData.DOGUS, dogusId);
             claims.put(PayloadData.DOGCLUB, dogclubId);
+            claims.put(PayloadData.KLAT, klatLoginToken);
 
             return jwtUtility.generateJwtResponse(claims);
         }

@@ -6,4 +6,5 @@ public final class PayloadData {
     public static final String DOGFILE = "dogfile";
     public static final String DOGUS = "dogus";
     public static final String DOGCLUB = "dogclub";
+    public static final String KLAT = "klat";
 }

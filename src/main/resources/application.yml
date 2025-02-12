@@ -8,3 +8,4 @@ spring:
       - nginx
       - kakao
       - redis
+      - klat
