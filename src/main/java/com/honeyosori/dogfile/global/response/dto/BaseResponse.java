@@ -33,8 +33,8 @@ public class BaseResponse<T> {
         this.data = data;
     }
 
-    public static BaseResponse<?> of(GeneralResponse generalResponse) {
-        return new BaseResponse<>(generalResponse.getCode(), generalResponse.getMessage(), null);
+    public static BaseResponse<?> of(CommonResponse commonResponse) {
+        return new BaseResponse<>(commonResponse.getCode(), commonResponse.getMessage(), null);
     }
 
     public ResponseEntity<?> to() {

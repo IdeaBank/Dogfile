@@ -1,11 +1,11 @@
-package com.honeyosori.dogfile.global.klat.dto;
+package com.honeyosori.dogfile.domain.klat.dto;
 
 import lombok.Builder;
 import lombok.Data;
 
 @Builder
 @Data
-public class LoginKlatDto {
+public class KlatLoginDto {
     private String userId;
     private String password;
 }

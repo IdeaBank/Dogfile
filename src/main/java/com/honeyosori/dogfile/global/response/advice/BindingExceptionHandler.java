@@ -1,8 +1,8 @@
-package com.honeyosori.dogfile.global.exception.advice;
+package com.honeyosori.dogfile.global.response.advice;
 
-import com.honeyosori.dogfile.global.exception.dto.GlobalException;
+import com.honeyosori.dogfile.global.response.dto.GlobalException;
 import com.honeyosori.dogfile.global.response.dto.BindingResultMessage;
-import com.honeyosori.dogfile.global.response.dto.GeneralResponse;
+import com.honeyosori.dogfile.global.response.dto.CommonResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.apache.http.entity.ContentType;
@@ -24,13 +24,13 @@ public class BindingExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    private GeneralResponse globalException(Exception e) {
+    private CommonResponse globalException(Exception e) {
         e.printStackTrace();
 
         if (e instanceof GlobalException globalException) {
             return globalException.getStatus();
         }
 
-        return GeneralResponse.INTERNAL_SERVER_ERROR;
+        return CommonResponse.INTERNAL_SERVER_ERROR;
     }
 }

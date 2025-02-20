@@ -1,4 +1,4 @@
-package com.honeyosori.dogfile.global.klat.dto;
+package com.honeyosori.dogfile.domain.klat.dto;
 
 import lombok.Builder;
 import lombok.Data;

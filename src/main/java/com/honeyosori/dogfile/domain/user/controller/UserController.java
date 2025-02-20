@@ -3,8 +3,8 @@ package com.honeyosori.dogfile.domain.user.controller;
 import com.honeyosori.dogfile.domain.user.dto.*;
 import com.honeyosori.dogfile.domain.user.service.UserService;
 import com.honeyosori.dogfile.global.constant.CustomHeader;
-import com.honeyosori.dogfile.global.response.dto.BaseResponse;
-import com.honeyosori.dogfile.global.response.dto.GeneralResponse;
+import com.honeyosori.dogfile.domain.klat.dto.KlatResponseDto;
+import com.honeyosori.dogfile.global.response.dto.CommonResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +32,7 @@ public class UserController {
     }
 
     @PostMapping("/user/logout")
-    public GeneralResponse logout(@RequestHeader(CustomHeader.EMAIL) String email) {
+    public CommonResponse logout(@RequestHeader(CustomHeader.EMAIL) String email) {
         return this.userService.logout(email);
     }
 
@@ -47,12 +47,12 @@ public class UserController {
     }
 
     @DeleteMapping("/user")
-    public GeneralResponse deleteUser(@RequestHeader(CustomHeader.EMAIL) String email) {
+    public CommonResponse deleteUser(@RequestHeader(CustomHeader.EMAIL) String email) {
         return this.userService.deleteUser(email);
     }
 
     @DeleteMapping("/user/cancel")
-    public GeneralResponse cancelDeletion(@RequestHeader(CustomHeader.EMAIL) String email) {
+    public CommonResponse cancelDeletion(@RequestHeader(CustomHeader.EMAIL) String email) {
         return this.userService.cancelDeletion(email);
     }
 
@@ -95,5 +95,10 @@ public class UserController {
     @GetMapping("/user/login-info")
     public UserLoginInfoDto getLoginInfo(@RequestHeader(CustomHeader.EMAIL) String email) {
         return this.userService.getUserLoginInfo(email);
+    }
+
+    @GetMapping("/klat")
+    public KlatResponseDto getKlat(@RequestHeader(CustomHeader.EMAIL) String email) {
+        return this.userService.getKlatInfo(email);
     }
 }

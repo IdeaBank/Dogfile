@@ -3,10 +3,8 @@ package com.honeyosori.dogfile.global.response.dto;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
-import java.util.Map;
-
 @Getter
-public enum GeneralResponse {
+public enum CommonResponse {
     /**
      * 2XX
      */
@@ -67,7 +65,7 @@ public enum GeneralResponse {
     private final int code;
     private final String message;
 
-    GeneralResponse(int code, String message) {
+    CommonResponse(int code, String message) {
         this.code = code;
         this.message = message;
     }

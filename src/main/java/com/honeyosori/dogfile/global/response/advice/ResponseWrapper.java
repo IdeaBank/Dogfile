@@ -1,7 +1,7 @@
 package com.honeyosori.dogfile.global.response.advice;
 
 import com.honeyosori.dogfile.global.response.dto.BaseResponse;
-import com.honeyosori.dogfile.global.response.dto.GeneralResponse;
+import com.honeyosori.dogfile.global.response.dto.CommonResponse;
 import jakarta.annotation.Nonnull;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
@@ -34,12 +34,12 @@ public class ResponseWrapper implements ResponseBodyAdvice<Object> {
             @Nonnull ServerHttpRequest request,
             @Nonnull ServerHttpResponse response
     ) {
-        if (body instanceof GeneralResponse generalResponse) {
-            response.setStatusCode(HttpStatusCode.valueOf(generalResponse.getCode()));
+        if (body instanceof CommonResponse commonResponse) {
+            response.setStatusCode(HttpStatusCode.valueOf(commonResponse.getCode()));
 
             return BaseResponse.builder()
-                    .code(generalResponse.getCode())
-                    .message(generalResponse.getMessage())
+                    .code(commonResponse.getCode())
+                    .message(commonResponse.getMessage())
                     .data(null)
                     .build();
         }

@@ -2,9 +2,8 @@ package com.honeyosori.dogfile.domain.oauth.controller;
 
 import com.honeyosori.dogfile.domain.oauth.dto.CreateKakaoAccountDto;
 import com.honeyosori.dogfile.domain.oauth.service.KakaoOAuthService;
-import com.honeyosori.dogfile.global.response.dto.GeneralResponse;
+import com.honeyosori.dogfile.global.response.dto.CommonResponse;
 import jakarta.validation.Valid;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +20,7 @@ public class OAuthController {
     }
 
     @PostMapping("/kakao/register")
-    public GeneralResponse register(@Valid @RequestBody CreateKakaoAccountDto createKakaoAccountDto) {
+    public CommonResponse register(@Valid @RequestBody CreateKakaoAccountDto createKakaoAccountDto) {
         return this.kakaoOAuthService.registerUser(createKakaoAccountDto);
     }
 

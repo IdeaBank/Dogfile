@@ -10,9 +10,6 @@ public class KakaoOAuthComponent {
     @Value("${oauth.kakao.api_key}")
     public String CLIENT_ID;
 
-    @Value("${oauth.kakao.auth_url}")
-    public String AUTH_URI;
-
     @Value("${oauth.kakao.api_url}")
     public String API_URI;
 }

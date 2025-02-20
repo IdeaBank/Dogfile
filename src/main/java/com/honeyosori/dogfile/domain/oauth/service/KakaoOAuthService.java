@@ -13,12 +13,11 @@ import com.honeyosori.dogfile.domain.feign.dto.CreateDogusUserDto;
 import com.honeyosori.dogfile.domain.user.entity.User;
 import com.honeyosori.dogfile.domain.user.repository.UserRepository;
 import com.honeyosori.dogfile.global.constant.PayloadData;
-import com.honeyosori.dogfile.global.klat.component.KlatComponent;
-import com.honeyosori.dogfile.global.klat.dto.CreateKlatUserDto;
-import com.honeyosori.dogfile.global.klat.dto.KlatResponseDto;
-import com.honeyosori.dogfile.global.klat.dto.LoginKlatDto;
-import com.honeyosori.dogfile.global.response.dto.BaseResponse;
-import com.honeyosori.dogfile.global.response.dto.GeneralResponse;
+import com.honeyosori.dogfile.domain.klat.component.KlatComponent;
+import com.honeyosori.dogfile.domain.klat.dto.CreateKlatUserDto;
+import com.honeyosori.dogfile.domain.klat.dto.KlatResponseDto;
+import com.honeyosori.dogfile.domain.klat.dto.KlatLoginDto;
+import com.honeyosori.dogfile.global.response.dto.CommonResponse;
 import com.honeyosori.dogfile.global.utility.JwtUtility;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -41,6 +40,7 @@ public class KakaoOAuthService {
     private final DogusClient dogusClient;
     private final DogclubClient dogclubClient;
     private final KlatComponent klatComponent;
+    private final RestClient restClient;
 
     public KakaoOAuthService(
             UserRepository userRepository,
@@ -48,7 +48,8 @@ public class KakaoOAuthService {
             JwtUtility jwtUtility,
             DogusClient dogusClient,
             DogclubClient dogclubClient,
-            KlatComponent klatcomponent
+            KlatComponent klatcomponent,
+            RestClient restClient
     ) {
         this.userRepository = userRepository;
         this.kakaoOAuthComponent = kakaoOAuthComponent;
@@ -56,10 +57,11 @@ public class KakaoOAuthService {
         this.dogusClient = dogusClient;
         this.dogclubClient = dogclubClient;
         this.klatComponent = klatcomponent;
+        this.restClient = restClient;
     }
 
     @Transactional
-    public GeneralResponse registerUser(CreateKakaoAccountDto createKakaoAccountDto) {
+    public CommonResponse registerUser(CreateKakaoAccountDto createKakaoAccountDto) {
         String email = getEmailUsingAccessToken(createKakaoAccountDto.kakaoAccessToken());
         Date birthday = createKakaoAccountDto.birthday();
         String phoneNumber = createKakaoAccountDto.phoneNumber();
@@ -69,7 +71,7 @@ public class KakaoOAuthService {
         final String profileImageUrl = "default";
 
         this.userRepository.findUserByEmail(email).ifPresent((u) -> {
-            throw new OAuthException(GeneralResponse.USER_EXISTS);
+            throw new OAuthException(CommonResponse.USER_EXISTS);
         });
 
         User user = new User(email, birthday, phoneNumber, genderType, realName, accountName);
@@ -97,17 +99,17 @@ public class KakaoOAuthService {
 
         try {
             log.info("[DOGUS] Send User Create Request");
-            ResponseEntity<?> dogusResponse = dogusClient.register(createDogusUserDto);
-            log.info(dogusResponse.toString());
+            //ResponseEntity<?> dogusResponse = dogusClient.register(createDogusUserDto);
+            //log.info(dogusResponse.toString());
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("DOGUS 등록 실패", e);
+            throw new OAuthException(CommonResponse.INTERNAL_SERVER_ERROR, "DOGUS 등록 실패");
         }
 
         try {
             log.info("[DOGCLUB] Send User Create Request");
-            ResponseEntity<?> dogclubResponse = dogclubClient.register(createDogclubUserDto);
-            log.info(dogclubResponse.toString());
+            //ResponseEntity<?> dogclubResponse = dogclubClient.register(createDogclubUserDto);
+            //log.info(dogclubResponse.toString());
         } catch (Exception e) {
             e.printStackTrace();
             dogusClient.deleteUser(user.getId());
@@ -116,7 +118,6 @@ public class KakaoOAuthService {
 
         try {
             log.info("[KLAT] Send User Create Request");
-            RestClient restClient = RestClient.create();
             KlatResponseDto result = restClient.post()
                     .uri("https://api.talkplus.io/v1.4/api/users/create")
                     .headers(headers -> {
@@ -126,12 +127,12 @@ public class KakaoOAuthService {
                     .body(createKlatUserDto)
                     .retrieve()
                     .body(KlatResponseDto.class);
-            log.info("[KLAT] " + result.getLoginToken());
+            log.info("[KLAT] " + result.loginToken());
         } catch (Exception e) {
             throw new RuntimeException("KLAT 등록 실패", e);
         }
 
-        return GeneralResponse.CREATED;
+        return CommonResponse.CREATED;
     }
 
     public String getEmailUsingAccessToken(String accessToken) {
@@ -144,16 +145,16 @@ public class KakaoOAuthService {
                 .header(HttpHeaders.AUTHORIZATION, TokenType.BEARER + accessToken)
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, (request, response) -> {
-                    throw new OAuthException(GeneralResponse.REJECTED);
+                    throw new OAuthException(CommonResponse.REJECTED);
                 })
                 .body(KakaoUserInformation.class);
 
         if (kakaoUserInformation == null || kakaoUserInformation.getKakaoAccount() == null) {
-            throw new OAuthException(GeneralResponse.INTERNAL_SERVER_ERROR);
+            throw new OAuthException(CommonResponse.INTERNAL_SERVER_ERROR);
         }
 
         if (kakaoUserInformation.getKakaoAccount().getEmail() == null || kakaoUserInformation.getKakaoAccount().getEmail().isEmpty()) {
-            throw new OAuthException(GeneralResponse.INTERNAL_SERVER_ERROR);
+            throw new OAuthException(CommonResponse.INTERNAL_SERVER_ERROR);
         }
 
         return kakaoUserInformation.getKakaoAccount().getEmail();
@@ -174,12 +175,12 @@ public class KakaoOAuthService {
 
         // User 없으면 USER_NOT_FOUND 반환
         User user = this.userRepository.findUserByEmail(email).orElseThrow(()
-                -> new OAuthException(GeneralResponse.USER_NOT_FOUND));
+                -> new OAuthException(CommonResponse.USER_NOT_FOUND));
 
         try {
             log.info("[DOGUS] Send User Find Request");
-            dogusId = dogusClient.findByDogfileUserId(user.getId());
-            log.info(dogusId);
+            //dogusId = dogusClient.findByDogfileUserId(user.getId());
+            //log.info(dogusId);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("DOGUS 찾기 실패", e);
@@ -187,32 +188,22 @@ public class KakaoOAuthService {
 
         try {
             log.info("[DOGCLUB] Send User Find Request");
-            dogclubId = dogclubClient.findByDogfileUserId(user.getId());
-            log.info(dogclubId);
+            //dogclubId = dogclubClient.findByDogfileUserId(user.getId());
+            //log.info(dogclubId);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("DOGCLUB 찾기 실패", e);
         }
 
-        LoginKlatDto loginKlatDto = LoginKlatDto.builder()
+        KlatLoginDto klatLoginDto = KlatLoginDto.builder()
                 .userId(user.getId())
                 .password(user.getId())
                 .build();
 
         try {
             log.info("[KLAT] Send User Create Request");
-            RestClient restClient = RestClient.create();
-            KlatResponseDto result = restClient.post()
-                    .uri("https://api.talkplus.io/v1.4/api/users/login")
-                    .headers(headers -> {
-                        headers.set("app-id", klatComponent.getKLAT_APP_ID());
-                        headers.set("api-key", klatComponent.getKLAT_API_KEY());
-                    })
-                    .body(loginKlatDto)
-                    .retrieve()
-                    .body(KlatResponseDto.class);
-            log.info("[KLAT] " + result.getLoginToken());
-            klatLoginToken = result.getLoginToken();
+            klatLoginToken = tryKlatLogin(klatLoginDto).loginToken();
+            log.info("[KLAT] " + klatLoginToken);
         } catch (Exception e) {
             throw new RuntimeException("KLAT 등록 실패", e);
         }
@@ -220,10 +211,22 @@ public class KakaoOAuthService {
         Map<String, String> claims = new HashMap<>();
         claims.put(PayloadData.EMAIL, email);
         claims.put(PayloadData.DOGFILE, user.getId());
-        claims.put(PayloadData.DOGUS, dogusId);
-        claims.put(PayloadData.DOGCLUB, dogclubId);
+        //claims.put(PayloadData.DOGUS, dogusId);
+        //claims.put(PayloadData.DOGCLUB, dogclubId);
         claims.put(PayloadData.KLAT, klatLoginToken);
 
         return jwtUtility.generateJwtResponse(claims);
+    }
+
+    private KlatResponseDto tryKlatLogin(KlatLoginDto klatLoginDto) {
+        return restClient.post()
+                .uri("https://api.talkplus.io/v1.4/api/users/login")
+                .headers(headers -> {
+                    headers.set("app-id", klatComponent.getKLAT_APP_ID());
+                    headers.set("api-key", klatComponent.getKLAT_API_KEY());
+                })
+                .body(klatLoginDto)
+                .retrieve()
+                .body(KlatResponseDto.class);
     }
 }
